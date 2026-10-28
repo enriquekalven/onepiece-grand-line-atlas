@@ -1,0 +1,19 @@
+{
+  "name": "onepiece-grand-line-atlas",
+  "version": "2.0.0",
+  "description": "Interactive 3D One Piece World Globe, Canonical Manga Maps, Log Pose Timeline, Character Art, Wanted Posters, Devil Fruits & Crew Builder for Kids",
+  "homepage": "https://onepiece-grand-line-atlas.web.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/enriquekalven/onepiece-grand-line-atlas.git"
+  },
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests/portal.test.js",
+    "deploy": "firebase deploy --only hosting:onepiece-grand-line-atlas --project project-maui"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
