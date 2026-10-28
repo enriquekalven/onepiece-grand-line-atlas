@@ -42,9 +42,9 @@
       awakened: false,
       image: '/assets/fruits/bara-bara.jpg',
       sprite: '/assets/fruits/bara-bara.png',
-      zukanShape: 'Oval magenta pineapple of detachable diamond-swirl scales & green crown fronds (Ch. 19 • Zukan)',
+      zukanShape: 'Oval crimson-magenta berry cluster of detachable swirl-marked spheres & green crown leaves (Ch. 19 • OP Mag Vol. 2)',
       shapeType: 'pineapple',
-      primaryColor: '#db2777',
+      primaryColor: '#be185d',
       secondaryColor: '#fbcfe8',
       auraColor: '#f43f5e',
       effectType: 'chop',
@@ -63,7 +63,7 @@
       awakened: false,
       image: '/assets/fruits/hito-chopper.jpg',
       sprite: '/assets/fruits/hito-chopper.png',
-      zukanShape: 'Crimson swirl-capped toadstool mushroom on a thick cream stalk (SBS Vol. 20 • OP Mag Vol. 2)',
+      zukanShape: 'Crimson Amanita mushroom cap covered in curly S-swirls on a cream stalk with a curled top T-stem (SBS Vol. 45 • OP Mag Vol. 1)',
       shapeType: 'mushroom',
       primaryColor: '#e11d48',
       secondaryColor: '#fef3c7',
@@ -84,7 +84,7 @@
       awakened: false,
       image: '/assets/fruits/suna-suna.jpg',
       sprite: '/assets/fruits/suna-suna.png',
-      zukanShape: 'Sandy tan-ochre ribbed desert barrel cactus with spines & spiral T-stem (OP Mag Vol. 13)',
+      zukanShape: 'Spherical sandy-tan barrel cactus with two upward arms, S-swirl ribs & curled green T-stem (OP Mag Vol. 10)',
       shapeType: 'cactus',
       primaryColor: '#d97706',
       secondaryColor: '#fde68a',
@@ -106,7 +106,7 @@
       awakened: false,
       image: '/assets/fruits/mera-mera.jpg',
       sprite: '/assets/fruits/mera-mera.png',
-      zukanShape: 'Blazing orange-gold round fruit of rising spiral-tipped flame tongues (Ch. 702 • OP Mag Vol. 1)',
+      zukanShape: 'Blazing orange-gold round fruit of upward flame tongues each bearing a swirl & swirled green T-stem (Ch. 700 • OP Mag Vol. 1)',
       shapeType: 'flame',
       primaryColor: '#f97316',
       secondaryColor: '#facc15',
@@ -127,7 +127,7 @@
       awakened: false,
       image: '/assets/fruits/hana-hana.jpg',
       sprite: '/assets/fruits/hana-hana.png',
-      zukanShape: 'Layered blooming rose-pink dahlia/lotus of swirl-patterned petals (OP Mag Vol. 3)',
+      zukanShape: 'Multi-layered blooming rose-pink dahlia of swirl-marked petals with a curled green top T-stem (OP Mag Vol. 2)',
       shapeType: 'flower',
       primaryColor: '#ec4899',
       secondaryColor: '#fbcfe8',
@@ -148,10 +148,10 @@
       awakened: false,
       image: '/assets/fruits/yomi-yomi.jpg',
       sprite: '/assets/fruits/yomi-yomi.png',
-      zukanShape: 'Golden-amber skull-shaped gourd with hollow spiral eye sockets (OP Mag Vol. 6)',
+      zukanShape: 'Golden spherical fruit with S-swirls & four bottom tooth-like lobes forming a subtle skull silhouette (OP Mag Vol. 13)',
       shapeType: 'skull',
-      primaryColor: '#d97706',
-      secondaryColor: '#fde68a',
+      primaryColor: '#eab308',
+      secondaryColor: '#fef08a',
       auraColor: '#34d399',
       effectType: 'soul',
       powerSummary:
@@ -169,7 +169,7 @@
       awakened: true,
       image: '/assets/fruits/ope-ope.jpg',
       sprite: '/assets/fruits/ope-ope.png',
-      zukanShape: 'Crimson Valentine heart-shaped berry with raised S-swirls & looped stem (Ch. 765 • OP Mag Vol. 2)',
+      zukanShape: 'Crimson strawberry-heart fruit covered in S-swirls with a tall spiral-curled top stem (Ch. 765 • OP Mag Vol. 3)',
       shapeType: 'heart',
       primaryColor: '#e11d48',
       secondaryColor: '#fda4af',
@@ -190,11 +190,11 @@
       awakened: false,
       image: '/assets/fruits/gura-gura.jpg',
       sprite: '/assets/fruits/gura-gura.png',
-      zukanShape: 'Pale sky-blue pear covered in heavy shockwave S-swirls & curling stem (OP Mag Vol. 10)',
+      zukanShape: 'Cobalt-blue pear with upper S-swirls, quake-fractured fissured lower rind & curled green T-stem (OP Mag Vol. 8)',
       shapeType: 'pear',
-      primaryColor: '#60a5fa',
-      secondaryColor: '#e0f2fe',
-      auraColor: '#93c5fd',
+      primaryColor: '#2563eb',
+      secondaryColor: '#93c5fd',
+      auraColor: '#60a5fa',
       effectType: 'quake',
       powerSummary:
         'Feared as the strongest Paramecia with the power to "destroy the world"! Punches visible glass-like cracks straight into the air, tilting seas and shaking entire islands.',
@@ -211,9 +211,9 @@
       awakened: false,
       image: '/assets/fruits/yami-yami.jpg',
       sprite: '/assets/fruits/yami-yami.png',
-      zukanShape: 'Deep violet pinecone cluster of upward-curling spiral-tipped scales (Ch. 440 • OP Mag Vol. 4)',
+      zukanShape: 'Round violet cluster of spiky swirl-marked teardrop segments crowned with sprouting green leaves (Ch. 440 • OP Mag Vol. 5)',
       shapeType: 'pinecone',
-      primaryColor: '#4c1d95',
+      primaryColor: '#6d28d9',
       secondaryColor: '#c4b5fd',
       auraColor: '#7c3aed',
       effectType: 'darkness',
@@ -232,7 +232,7 @@
       awakened: false,
       image: '/assets/fruits/pika-pika.jpg',
       sprite: '/assets/fruits/pika-pika.png',
-      zukanShape: 'Radiant golden-yellow 5-pointed starfruit etched with photon swirls (Admiral Logia Zukan)',
+      zukanShape: 'Golden 5-pointed starfruit with S-swirls & curled green T-stem (Unrevealed in Manga — Zukan-Style Reconstruction)',
       shapeType: 'starfruit',
       primaryColor: '#facc15',
       secondaryColor: '#fef9c3',
@@ -253,7 +253,7 @@
       awakened: false,
       image: '/assets/fruits/hie-hie.jpg',
       sprite: '/assets/fruits/hie-hie.png',
-      zukanShape: 'Jagged frost-blue crystalline glacier melon crowned with icy facets (Admiral Logia Zukan)',
+      zukanShape: 'Frost-cyan faceted crystalline melon with S-swirls & curled T-stem (Unrevealed in Manga — Zukan-Style Reconstruction)',
       shapeType: 'crystal',
       primaryColor: '#38bdf8',
       secondaryColor: '#e0f2fe',
@@ -274,7 +274,7 @@
       awakened: false,
       image: '/assets/fruits/magu-magu.jpg',
       sprite: '/assets/fruits/magu-magu.png',
-      zukanShape: 'Craggy obsidian-crimson volcanic fruit oozing molten orange lava swirls (Admiral Logia Zukan)',
+      zukanShape: 'Craggy crimson-lava melon with glowing orange S-swirls & green T-stem (Unrevealed in Manga — Zukan-Style Reconstruction)',
       shapeType: 'magma',
       primaryColor: '#dc2626',
       secondaryColor: '#fb923c',
@@ -295,9 +295,9 @@
       awakened: false,
       image: '/assets/fruits/tori-phoenix.jpg',
       sprite: '/assets/fruits/tori-phoenix.png',
-      zukanShape: 'Golden pineapple wreathed in cyan-gold regeneration flame curls (OP Mag Vol. 14)',
+      zukanShape: 'Oval teal-green pineapple of prickly swirl-centered fruitlets crowned by cyan-gold phoenix-flame blades (OP Mag Vol. 20)',
       shapeType: 'pineapple',
-      primaryColor: '#06b6d4',
+      primaryColor: '#0d9488',
       secondaryColor: '#fde047',
       auraColor: '#22d3ee',
       effectType: 'phoenix',
@@ -316,10 +316,10 @@
       awakened: true,
       image: '/assets/fruits/ito-ito.jpg',
       sprite: '/assets/fruits/ito-ito.png',
-      zukanShape: 'Pale white-lavender pear etched with fine thread-like S-swirls & green T-stem (Ch. 763 • OP Mag Vol. 5)',
+      zukanShape: 'Pale-lilac pear embedded all over with interlocking S-swirls & topped with a curly fuchsia stem (Ch. 782 • OP Mag Vol. 3)',
       shapeType: 'pear',
-      primaryColor: '#e2e8f0',
-      secondaryColor: '#c4b5fd',
+      primaryColor: '#e9d5ff',
+      secondaryColor: '#c026d3',
       auraColor: '#ec4899',
       effectType: 'strings',
       powerSummary:
@@ -339,10 +339,10 @@
       awakened: true,
       image: '/assets/fruits/mochi-mochi.jpg',
       sprite: '/assets/fruits/mochi-mochi.png',
-      zukanShape: 'Two-tiered stacked cream-pink Kagami Mochi rice cake topped with a green leaf (OP Mag Vol. 12)',
+      zukanShape: 'Single creamy-white swirl-patterned fruit pinching near the lower half into a puffed mochi base with curled green T-stem (OP Mag Vol. 4)',
       shapeType: 'mochi',
-      primaryColor: '#fbcfe8',
-      secondaryColor: '#fff1f2',
+      primaryColor: '#fef3c7',
+      secondaryColor: '#fffbeb',
       auraColor: '#e879f9',
       effectType: 'mochi',
       powerSummary:
@@ -360,7 +360,7 @@
       awakened: false,
       image: '/assets/fruits/uo-seiryu.jpg',
       sprite: '/assets/fruits/uo-seiryu.png',
-      zukanShape: 'Sapphire-blue overlapping dragon-scale cone crowned with a horned green stem (OP Mag Vol. 14)',
+      zukanShape: 'Azure-blue dragon-scale pinecone with base spirals, crowned by orange leaves & purple/light-pink horn stems (Ch. 1096 • OP Mag Vol. 13)',
       shapeType: 'dragon',
       primaryColor: '#0284c7',
       secondaryColor: '#38bdf8',
@@ -381,15 +381,78 @@
       awakened: false,
       image: '/assets/fruits/inu-makami.jpg',
       sprite: '/assets/fruits/inu-makami.png',
-      zukanShape: 'Sacred vermilion-orange persimmon wrapped in floating aqua-white wolf-deity clouds (OP Mag Vol. 14)',
+      zukanShape: 'Flattened orange persimmon with brownish calyx, upper fishhook swirls & left-curled light-orange T-stem (OP Mag Vol. 13)',
       shapeType: 'persimmon',
       primaryColor: '#ea580c',
-      secondaryColor: '#99f6e4',
+      secondaryColor: '#fdba74',
       auraColor: '#2dd4bf',
       effectType: 'ice',
       powerSummary:
         'Wano\'s legendary Guardian Deity Mythical Zoan! Transforms Yamato into a sacred white-and-aqua wolf spirit firing Namuji Glacier Fang ice blasts strong enough to clash evenly with Kaido\'s Bolo Breath and coat herself in Mirror Mountain ice armor!',
       weakness: 'Standard Devil Fruit weakness to seawater and Sea Prism Stone handcuffs.'
+    },
+    {
+      id: 'nikyu-nikyu',
+      name: 'Nikyu Nikyu no Mi',
+      englishName: 'Paw-Paw Fruit',
+      category: 'Paramecia',
+      era: 'pre-timeskip',
+      user: 'Bartholomew Kuma',
+      characterId: 'kuma',
+      awakened: false,
+      image: '/assets/fruits/nikyu-nikyu.jpg',
+      sprite: '/assets/fruits/nikyu-nikyu.png',
+      zukanShape: 'Flesh-pink swirl-patterned round fruit topped by three rounded lumps forming a 3-digit paw silhouette & middle curled T-stem (Ch. 1096)',
+      shapeType: 'sphere',
+      primaryColor: '#f472b6',
+      secondaryColor: '#fbcfe8',
+      auraColor: '#f472b6',
+      effectType: 'paw',
+      powerSummary:
+        'Revealed in Chapter 1096 at God Valley! Grants fleshy paw pads on the user\'s palms capable of repelling ANYTHING at the speed of light — compressed air ("Ursus Shock"), incoming attacks, travelers across oceans for 3 days, and even intangible pain or memories into glowing paw bubbles!',
+      weakness: 'If the user\'s palms cannot intercept an attack in time, their body can still be struck.'
+    },
+    {
+      id: 'nomi-nomi',
+      name: 'Nomi Nomi no Mi',
+      englishName: 'Brain-Brain Fruit',
+      category: 'Paramecia',
+      era: 'egghead',
+      user: 'Dr. Vegapunk ("Stella")',
+      characterId: 'vegapunk',
+      awakened: false,
+      image: '/assets/fruits/nomi-nomi.jpg',
+      sprite: '/assets/fruits/nomi-nomi.png',
+      zukanShape: 'Coral-pink bi-lobed cerebral apple with brain-gyri S-swirls & curled green T-stem (Unrevealed in Manga — Zukan-Style Reconstruction)',
+      shapeType: 'cloud',
+      primaryColor: '#f43f5e',
+      secondaryColor: '#fda4af',
+      auraColor: '#38bdf8',
+      effectType: 'brain',
+      powerSummary:
+        'Allows the user\'s brain to store an INFINITE amount of knowledge without ever forgetting a single detail! However, the physical brain grows larger with every book learned — growing so colossal that Dr. Vegapunk housed his giant brain inside Egghead\'s floating Punk Records dome and synced it via an apple antenna!',
+      weakness: 'Grants zero innate superhuman strength — and makes your head grow as tall as a giant!'
+    },
+    {
+      id: 'toshi-toshi',
+      name: 'Toshi Toshi no Mi',
+      englishName: 'Age-Age Fruit',
+      category: 'Paramecia',
+      era: 'egghead',
+      user: 'Jewelry Bonney',
+      characterId: 'bonney',
+      awakened: false,
+      image: '/assets/fruits/toshi-toshi.jpg',
+      sprite: '/assets/fruits/toshi-toshi.png',
+      zukanShape: 'Rose-magenta hourglass gourd covered in organic S-swirls & curled green T-stem (Unrevealed in Manga — Zukan-Style Reconstruction)',
+      shapeType: 'pear',
+      primaryColor: '#e11d48',
+      secondaryColor: '#fda4af',
+      auraColor: '#fb7185',
+      effectType: 'nika-future',
+      powerSummary:
+        'Originally bestowed via Saturn\'s Devil Fruit extract experiment when Bonney was an infant! Lets Bonney freely age or de-age living beings and objects — and through "Distorted Future," temporarily transform herself into ANY possible future she truly believes in, including a white-haired Sun God Nika form alongside Luffy!',
+      weakness: 'Age shifts on living foes wear off over time, and Distorted Future weakens if the user doubts that future.'
     }
   ];
 
@@ -494,7 +557,85 @@
         {
           heading: '3. Where Are the 4 Stones?',
           detail:
-            '• Stone #1: Inside the Whale Tree on Zou (Zunesha)\n• Stone #2: Big Mom\'s vault on Whole Cake Island (copied by Brook!)\n• Stone #3: Deep beneath Mt. Fuji in Old Wano\n• Stone #4: Mysterious final stone!'
+            '• Stone #1: Inside the Whale Tree on Zou (Zunesha)\n• Stone #2: Big Mom\'s vault on Whole Cake Island (copied by Brook!)\n• Stone #3: Deep beneath Mt. Fuji in Old Wano\n• Stone #4: Mysterious final stone (rumored with the "Man Marked by Flames")!'
+        }
+      ]
+    },
+    {
+      id: 'three-ancient-weapons',
+      era: 'wano',
+      title: 'The Three Ancient Weapons: Pluton, Poseidon & Uranus!',
+      badge: 'Void Century Lore',
+      icon: '🔱',
+      summary:
+        'Handed down from the Void Century 800 years ago and recorded on the Poneglyphs, three world-shaking powers named after ancient gods can reshape entire oceans and islands!',
+      steps: [
+        {
+          heading: '1. PLUTON (The Ancient Super-Battleship Under Old Wano)',
+          detail:
+            'Built in Water 7 during the Void Century (whose counter-blueprints Franky memorized and burned at Enies Lobby!). The Alabasta Poneglyph revealed that Pluton sleeps deep beneath submerged Old Wano under Mt. Fuji — unleashed only if Wano\'s outer walls are torn down!'
+        },
+        {
+          heading: '2. POSEIDON (Mermaid Princess Shirahoshi & The Sea Kings)',
+          detail:
+            'Revealed on the Skypiea Golden Bell Poneglyph and confirmed at Fish-Man Island: Poseidon isn\'t a machine, but a living Mermaid Princess born once every few centuries who can speak with and command the colossal Sea Kings ("Noah\'s Ark" promise to Joy Boy)!'
+        },
+        {
+          heading: '3. URANUS (The Sky-Borne God Weapon)',
+          detail:
+            'First named by King Neptune on Fish-Man Island as the third Ancient Weapon alongside Pluton and Poseidon — tied to the skies and the deepest secrets of the World Government!'
+        }
+      ]
+    },
+    {
+      id: 'den-den-vivre-kairoseki',
+      era: 'pre-timeskip',
+      title: 'Grand Line Science: Den Den Mushi, Vivre Cards & Sea Prism Stone',
+      badge: 'Navigator Tech',
+      icon: '🐌',
+      summary:
+        'How do pirates talk across oceans without satellites, track crewmates without GPS, or cage Logia Devil Fruit users? With three iconic Grand Line wonders!',
+      steps: [
+        {
+          heading: '1. Den Den Mushi (Telepathic Transponder Snails!)',
+          detail:
+            'Wild snails that naturally communicate via telepathic radio waves ("Puru puru puru... Gacha!")! When speaking, a Den Den Mushi mimics the caller\'s exact facial expressions, mustache, sunglasses, and even crying!'
+        },
+        {
+          heading: '2. Vivre Cards (The Paper of Life)',
+          detail:
+            'Crafted in the New World from a person\'s fingernail clippings! Completely waterproof and fireproof, a torn piece always slides gently toward its owner\'s main card — and shrinks/smolders if their life force is in danger!'
+        },
+        {
+          heading: '3. Sea Prism Stone (Kairoseki — Solidified Sea Energy)',
+          detail:
+            'Originating in Wano Country and as hard as diamond! Emits the exact same wavelength as the ocean: touching it drains Devil Fruit users\' strength, while lining Marine warship hulls hides ships from Calm Belt Sea Kings!'
+        }
+      ]
+    },
+    {
+      id: 'vegapunk-sinking-world',
+      era: 'egghead',
+      title: 'Dr. Vegapunk\'s Egghead Broadcast: Why the World Is Sinking 200m!',
+      badge: 'Final Saga Revelation',
+      icon: '📡',
+      summary:
+        'Transmitted from Iron Giant Emeth\'s hidden Visual Den Den Mushi on Egghead, Dr. Vegapunk revealed the breathtaking truth connecting Joy Boy, the Four Blues, and the Void Century!',
+      steps: [
+        {
+          heading: '1. Joy Boy: The Very First Pirate (900–800 Years Ago)',
+          detail:
+            'Born in a dazzlingly advanced Ancient Kingdom during the Void Century, Joy Boy possessed the stretching power of Sun God Nika and sailed the seas as history\'s very first pirate — opposing the 20 Allied Kingdoms that became today\'s World Government!'
+        },
+        {
+          heading: '2. The 200-Meter Cataclysm & Ancient Continents Underwater!',
+          detail:
+            'During the 100-year war of the Void Century, Ancient Weapons caused global sea levels to rise by 200 METERS! Today\'s scattered islands are actually just the surviving mountain peaks of drowned ancient continents!'
+        },
+        {
+          heading: '3. The Mother Flame & Who Claims the One Piece',
+          detail:
+            'After Lulusia\'s destruction raised global sea levels by another 1 meter and triggered worldwide earthquakes, Vegapunk declared before the entire planet: the fate of the world will hinge on WHO finds the One Piece!'
         }
       ]
     }
@@ -630,6 +771,32 @@
       correctIndex: 1,
       explanation:
         'You got it! Roger laughed with pure joy at Joy Boy\'s 800-year-old tale and named the final island "Laugh Tale"!'
+    },
+    {
+      era: 'pre-timeskip',
+      question: 'What legendary wood and secret fuel power the Thousand Sunny\'s 1-kilometer Coup de Burst jump?',
+      options: [
+        'Yarukiman Mangrove wood and jet kerosene',
+        'Treasure Tree Adam wood and 3 giant barrels of fizzy COLA!',
+        'Sunlight Tree Eve bark and hot soup',
+        'Wapometal iron and Rumble Balls'
+      ],
+      correctIndex: 1,
+      explanation:
+        'SUUUUPER! Franky built the Thousand Sunny from indestructible Treasure Tree Adam wood and fueled its Coup de Burst rocket with 3 barrels of cola!'
+    },
+    {
+      era: 'egghead',
+      question: 'In Dr. Vegapunk\'s global broadcast from Egghead, what shocking secret did he reveal about the One Piece world\'s oceans?',
+      options: [
+        'Sea levels rose 200 METERS during the Void Century war — today\'s islands are the mountaintops of drowned ancient continents!',
+        'The Four Blues are made of sweet soda',
+        'Skypiea used to be underwater beneath Impel Down',
+        'Reverse Mountain was built yesterday by Buggy'
+      ],
+      correctIndex: 0,
+      explanation:
+        'Quasar-level genius! Vegapunk revealed that Ancient Weapons raised global sea levels by 200 meters during the Void Century, submerging entire ancient continents!'
     }
   ];
 

@@ -272,6 +272,83 @@
 
       return true;
     }
+
+    /**
+     * Plays a character's iconic One Piece laugh ("Shishishishi!", "Zehahahaha!", "Gurararara!")
+     * using custom pitch/rate Web Speech synthesis + comic bounce chime fallback!
+     */
+    playSignatureLaugh(laughText, pitch, rate, langCode) {
+      this.playLogPoseChime();
+      if (
+        !laughText ||
+        typeof window === 'undefined' ||
+        !('speechSynthesis' in window) ||
+        typeof window.SpeechSynthesisUtterance !== 'function'
+      ) {
+        return false;
+      }
+      this.stopSpeech();
+      const sessionId = ++this.speechSessionId;
+      const targetBcp = this.getSpeechBcp47(langCode || 'en');
+      const cleaned = String(laughText).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
+      if (!cleaned) return false;
+
+      this.speechTimer = setTimeout(() => {
+        if (sessionId !== this.speechSessionId) return;
+        const utterance = new SpeechSynthesisUtterance(cleaned);
+        utterance.lang = targetBcp;
+        utterance.pitch = typeof pitch === 'number' ? Math.max(0.4, Math.min(1.8, pitch)) : 1.05;
+        utterance.rate = typeof rate === 'number' ? Math.max(0.65, Math.min(1.4, rate)) : 1.05;
+        const voice = this.pickBestVoice(langCode || 'en', false);
+        if (voice) {
+          utterance.voice = voice;
+          utterance.lang = voice.lang || targetBcp;
+        }
+        window.speechSynthesis.speak(utterance);
+      }, 40);
+      return true;
+    }
+
+    // Thousand Sunny Coup de Burst (3 Barrels of Cola Rocket Launch!)
+    playCoupDeBurst() {
+      const ctx = this.ensureCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      // Rising cola pressure whistle + rocket blast
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.35);
+      osc.frequency.exponentialRampToValueAtTime(110, now + 0.85);
+      gain.gain.setValueAtTime(0.01, now);
+      gain.gain.linearRampToValueAtTime(0.14, now + 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.88);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.9);
+    }
+
+    // Thousand Sunny Lion Mane Gaon Cannon Beam!
+    playGaonCannon() {
+      const ctx = this.ensureCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      this.tone(220, now, 0.18, 'triangle', 0.1);
+      this.tone(440, now + 0.14, 0.22, 'sine', 0.12);
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(620, now + 0.28);
+      osc.frequency.exponentialRampToValueAtTime(65, now + 0.95);
+      gain.gain.setValueAtTime(0.14, now + 0.28);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.98);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + 0.28);
+      osc.stop(now + 1.0);
+    }
   }
 
   if (typeof module !== 'undefined' && module.exports) {
@@ -279,3 +356,4 @@
   }
   root.OnePieceSoundFX = OnePieceSoundFX;
 })(typeof window !== 'undefined' ? window : globalThis);
+

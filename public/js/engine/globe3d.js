@@ -63,9 +63,9 @@
       this.ctx = canvas.getContext('2d');
       this.callbacks = callbacks || {};
 
-      // 'globe' | 'manga-map' | 'timeline' | 'devil-fruit'
+      // 'globe' | 'manga-map' | 'timeline' | 'devil-fruit' | 'ship-dock'
       this.mode = 'globe';
-      this.eraFilter = 'wano';
+      this.eraFilter = 'egghead';
       this.laughTaleUnlocked = false;
 
       // Respect OS reduced-motion preference on startup
@@ -107,6 +107,13 @@
       this.activeArcIndex = 0;
       this.shipProgress = 0;
       this.targetShipProgress = 0;
+
+      // 3D Shipwright Dock Cutaway state
+      this.activeShipId = 'thousand-sunny';
+      this.shipXrayCutaway = true;
+      this.selectedDockChannel = 2;
+      this.coupDeBurstTimer = 0;
+      this.gaonCannonTimer = 0;
 
       // Pre-cached Devil Fruit & Haki state
       this.activeFruit = window.ONE_PIECE_DATA.devilFruits[0];
@@ -299,7 +306,8 @@
             this.mapPanY = clamp(this.mapPanY + dy, -300, 300);
           } else {
             // Un-rotate drag vector by active roll so screen-space dragging feels natural!
-            const activeRoll = this.mode === 'devil-fruit' ? 0 : this.roll;
+            const activeRoll =
+              this.mode === 'devil-fruit' || this.mode === 'ship-dock' ? 0 : this.roll;
             const cosR = Math.cos(activeRoll);
             const sinR = Math.sin(activeRoll);
             const unrotDx = dx * cosR - dy * sinR;
@@ -417,6 +425,11 @@
         this.targetPitch = 0.18;
         this.targetZoom = 1.05;
         this.autoRotate = true;
+      } else if (mode === 'ship-dock') {
+        this.targetYaw = -0.58;
+        this.targetPitch = 0.22;
+        this.targetZoom = 1.05;
+        this.autoRotate = false;
       } else if (mode === 'timeline') {
         this.autoRotate = false;
         this.focusTimelineArc(this.activeArcIndex);
@@ -425,6 +438,29 @@
       } else {
         this.targetZoom = 1.0;
       }
+    }
+
+    setShip(shipId) {
+      this.activeShipId = shipId || 'thousand-sunny';
+      this.coupDeBurstTimer = 0;
+      this.gaonCannonTimer = 0;
+    }
+
+    toggleShipXray() {
+      this.shipXrayCutaway = !this.shipXrayCutaway;
+      return this.shipXrayCutaway;
+    }
+
+    setSelectedDockChannel(chIndex) {
+      this.selectedDockChannel = clamp(Number(chIndex) || 0, 0, 5);
+    }
+
+    triggerCoupDeBurst() {
+      this.coupDeBurstTimer = 2.8;
+    }
+
+    triggerGaonCannon() {
+      this.gaonCannonTimer = 2.6;
     }
 
     setActiveMangaMap(mapId) {
@@ -494,6 +530,11 @@
         this.mapPanX = 0;
         this.mapPanY = 0;
         this.targetMapZoom = 1.0;
+      } else if (this.mode === 'ship-dock') {
+        this.targetYaw = -0.58;
+        this.targetPitch = 0.22;
+        this.targetZoom = 1.05;
+        this.autoRotate = false;
       } else {
         this.targetYaw = Math.PI * 0.5;
         this.targetPitch = 0.0;
@@ -509,7 +550,8 @@
       this.elapsed += dt;
 
       if (this.autoRotate && !this.isDragging && this.mode !== 'manga-map') {
-        this.targetYaw += dt * (this.mode === 'devil-fruit' ? 0.55 : 0.13);
+        this.targetYaw +=
+          dt * (this.mode === 'devil-fruit' ? 0.55 : this.mode === 'ship-dock' ? 0.3 : 0.13);
       }
 
       this.yaw = lerpAngle(this.yaw, this.targetYaw, clamp(dt * 7, 0, 1));
@@ -521,6 +563,12 @@
 
       if (this.powerBurstTimer > 0) this.powerBurstTimer = Math.max(0, this.powerBurstTimer - dt);
       if (this.hakiBurstTimer > 0) this.hakiBurstTimer = Math.max(0, this.hakiBurstTimer - dt);
+      if (this.coupDeBurstTimer > 0) {
+        this.coupDeBurstTimer = Math.max(0, this.coupDeBurstTimer - dt);
+      }
+      if (this.gaonCannonTimer > 0) {
+        this.gaonCannonTimer = Math.max(0, this.gaonCannonTimer - dt);
+      }
 
       this.render();
       requestAnimationFrame(this.animate);
@@ -558,6 +606,8 @@
         this.renderMangaMapScene(ctx, w, h);
       } else if (this.mode === 'devil-fruit') {
         this.renderDevilFruitScene(ctx, w, h);
+      } else if (this.mode === 'ship-dock') {
+        this.renderShipDockScene(ctx, w, h);
       } else {
         this.renderPlanetGlobe(ctx, w, h);
       }
@@ -766,8 +816,8 @@
       this.drawRedLineContinent(ctx, cx, cy, baseRadius);
       this.drawReverseMountainXCanals(ctx, cx, cy, baseRadius);
 
-      // If all 4 Road Poneglyphs are collected in Wano mode, draw crimson X-beams to Laugh Tale!
-      if (this.laughTaleUnlocked && this.eraFilter === 'wano') {
+      // If all 4 Road Poneglyphs are collected in Wano+ mode, draw crimson X-beams to Laugh Tale!
+      if (this.laughTaleUnlocked && this.isEraAllowed('wano')) {
         this.drawRoadPoneglyphBeams(ctx, cx, cy, baseRadius);
       }
 
@@ -1456,7 +1506,7 @@
 
       // 6. Top-Left Wielder Portrait & Category Medallion
       const userImgKey =
-        fruit.id === 'gomu-nika' && this.eraFilter === 'wano' ? 'luffy-alt' : fruit.characterId;
+        fruit.id === 'gomu-nika' && this.isEraAllowed('wano') ? 'luffy-alt' : fruit.characterId;
       const userImg = this.charImages[userImgKey] || this.charImages[fruit.characterId];
       if (userImg && userImg.complete && userImg.naturalWidth > 0) {
         ctx.save();
@@ -1567,7 +1617,7 @@
         ctx.fillStyle = '#e0f2fe';
         ctx.textAlign = 'center';
         ctx.fillText('💥 GURA GURA — SKY-SHATTERING TREMOR! 💥', cx, cy - baseR * 1.62);
-      } else if (effect === 'gear5' && this.eraFilter === 'wano') {
+      } else if (effect === 'gear5' && this.isEraAllowed('wano')) {
         ctx.strokeStyle = '#f8fafc';
         ctx.shadowColor = '#fde047';
         ctx.shadowBlur = 16;
@@ -1597,6 +1647,68 @@
         ctx.fillStyle = '#fde047';
         ctx.textAlign = 'center';
         ctx.fillText('🥁 DRUMS OF LIBERATION — GEAR 5! 🥁', cx, cy - baseR * 1.62);
+      } else if (effect === 'paw') {
+        ctx.strokeStyle = 'rgba(249, 168, 212, 0.92)';
+        ctx.fillStyle = 'rgba(244, 114, 182, 0.15)';
+        ctx.lineWidth = 3;
+        const pawScale = baseR * (1.28 + Math.sin(this.elapsed * 8) * 0.1);
+        ctx.beginPath();
+        ctx.arc(cx, cy + pawScale * 0.15, pawScale * 0.58, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        const toeAngles = [-0.95, -0.32, 0.32, 0.95];
+        for (let t = 0; t < toeAngles.length; t++) {
+          const tx = cx + Math.sin(toeAngles[t]) * pawScale * 0.85;
+          const ty = cy - Math.cos(toeAngles[t]) * pawScale * 0.72;
+          ctx.beginPath();
+          ctx.arc(tx, ty, pawScale * 0.24, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+        ctx.font = '800 15px system-ui, sans-serif';
+        ctx.fillStyle = '#fbcfe8';
+        ctx.textAlign = 'center';
+        ctx.fillText('🐾 NIKYU NIKYU — URSUS SHOCK REPULSION! 🐾', cx, cy - baseR * 1.62);
+      } else if (effect === 'brain') {
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.2;
+        for (let n = 0; n < 10; n++) {
+          const ang = (n / 10) * Math.PI * 2 + this.elapsed * 1.8;
+          const nx = cx + Math.cos(ang) * baseR * 1.45;
+          const ny = cy + Math.sin(ang) * baseR * 1.25;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(nx, ny);
+          ctx.stroke();
+          ctx.fillStyle = n % 2 === 0 ? '#fde047' : '#38bdf8';
+          ctx.beginPath();
+          ctx.arc(nx, ny, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.font = '800 15px system-ui, sans-serif';
+        ctx.fillStyle = '#7dd3fc';
+        ctx.textAlign = 'center';
+        ctx.fillText('🧠 NOMI NOMI — PUNK RECORDS INFINITE SYNAPSE! 🧠', cx, cy - baseR * 1.62);
+      } else if (effect === 'nika-future') {
+        ctx.strokeStyle = this.isEraAllowed('egghead') ? '#f8fafc' : '#f472b6';
+        ctx.shadowColor = '#ec4899';
+        ctx.shadowBlur = 14;
+        ctx.lineWidth = 4;
+        for (let r = 0; r < 3; r++) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, baseR * (1.15 + r * 0.22), this.elapsed * 3 + r, this.elapsed * 3 + r + 4.2);
+          ctx.stroke();
+        }
+        ctx.font = '800 15px system-ui, sans-serif';
+        ctx.fillStyle = '#fbcfe8';
+        ctx.textAlign = 'center';
+        ctx.fillText(
+          this.isEraAllowed('egghead')
+            ? '⏳ DISTORTED FUTURE — A NIKA-LIKE FREE FUTURE! ⏳'
+            : '⏳ TOSHI TOSHI — AGE MANIPULATION WAVE! ⏳',
+          cx,
+          cy - baseR * 1.62
+        );
       } else if (effect === 'darkness') {
         for (let v = 0; v < 4; v++) {
           ctx.strokeStyle = v % 2 === 0 ? '#7c3aed' : '#1e1b4b';
@@ -1706,6 +1818,650 @@
         ctx.textAlign = 'center';
         ctx.fillText("⚡ CONQUEROR'S HAKI: SUPREME KING LIGHTNING!", cx, 34);
       }
+      ctx.restore();
+    }
+
+    renderShipDockScene(ctx, w, h) {
+      const cx = w * 0.5;
+      const cy = h * 0.56;
+      const scale = Math.min(w, h) * 0.235 * this.zoom;
+      const isSunny =
+        this.activeShipId === 'thousand-sunny' && this.isEraAllowed('pre-timeskip');
+      const xray = Boolean(this.shipXrayCutaway);
+
+      // Gentle ocean bob + Coup de Burst sky-jump arc
+      const bob = Math.sin(this.elapsed * 2.1) * 0.035;
+      let jumpY = 0;
+      let pitchBoost = 0;
+      if (this.coupDeBurstTimer > 0) {
+        const prog = 1 - this.coupDeBurstTimer / 2.6;
+        jumpY = Math.sin(prog * Math.PI) * 0.78;
+        pitchBoost = Math.cos(prog * Math.PI) * 0.18;
+      }
+
+      const yaw = this.yaw;
+      const pitch = this.pitch;
+
+      const projRaw = (x, y, z) => {
+        const rot = rotatePoint({ x, y, z }, yaw, pitch, 0);
+        const persp = 3.8 / Math.max(1.2, 3.8 - rot.z * 0.45);
+        return {
+          sx: cx + rot.x * scale * persp,
+          sy: cy - rot.y * scale * persp,
+          z: rot.z,
+          persp
+        };
+      };
+
+      const projShip = (lx, ly, lz) => {
+        // Apply pitchBoost around Z axis for Coup de Burst bow-lift
+        const cB = Math.cos(pitchBoost);
+        const sB = Math.sin(pitchBoost);
+        const rx = lx * cB - ly * sB;
+        const ry = lx * sB + ly * cB + bob + jumpY;
+        return projRaw(rx, ry, lz);
+      };
+
+      // 1. Water 7 Lagoon 3D Wave Grid
+      ctx.save();
+      ctx.lineWidth = 1.1;
+      for (let gx = -2.4; gx <= 2.4; gx += 0.4) {
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+        ctx.beginPath();
+        let started = false;
+        for (let gz = -1.8; gz <= 1.8; gz += 0.3) {
+          const wave = Math.sin(this.elapsed * 2.6 + gx * 2.2 + gz * 1.7) * 0.035;
+          const p = projRaw(gx, -0.34 + wave, gz);
+          if (!started) {
+            ctx.moveTo(p.sx, p.sy);
+            started = true;
+          } else {
+            ctx.lineTo(p.sx, p.sy);
+          }
+        }
+        ctx.stroke();
+      }
+      for (let gz = -1.8; gz <= 1.8; gz += 0.45) {
+        ctx.strokeStyle = 'rgba(20, 184, 166, 0.2)';
+        ctx.beginPath();
+        let started = false;
+        for (let gx = -2.4; gx <= 2.4; gx += 0.3) {
+          const wave = Math.sin(this.elapsed * 2.6 + gx * 2.2 + gz * 1.7) * 0.035;
+          const p = projRaw(gx, -0.34 + wave, gz);
+          if (!started) {
+            ctx.moveTo(p.sx, p.sy);
+            started = true;
+          } else {
+            ctx.lineTo(p.sx, p.sy);
+          }
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Painter's buffer for 3D quads/polygons
+      const faces = [];
+      const pushQuad = (pts3d, fill, stroke, lineW) => {
+        const pts2d = pts3d.map((pt) => projShip(pt[0], pt[1], pt[2]));
+        let avgZ = 0;
+        for (let i = 0; i < pts2d.length; i++) avgZ += pts2d[i].z;
+        avgZ /= pts2d.length;
+        faces.push({ pts2d, avgZ, fill, stroke, lineW: lineW || 1.2 });
+      };
+
+      // Hull stations along X (-1.28 stern to +1.35 bow)
+      const stations = isSunny
+        ? [
+            { x: -1.25, wTop: 0.44, wBot: 0.22, yTop: 0.26, yBot: -0.34 },
+            { x: -0.75, wTop: 0.62, wBot: 0.34, yTop: 0.16, yBot: -0.38 },
+            { x: 0.0, wTop: 0.68, wBot: 0.38, yTop: 0.14, yBot: -0.4 },
+            { x: 0.72, wTop: 0.56, wBot: 0.28, yTop: 0.18, yBot: -0.36 },
+            { x: 1.28, wTop: 0.18, wBot: 0.06, yTop: 0.32, yBot: -0.18 }
+          ]
+        : [
+            { x: -1.12, wTop: 0.36, wBot: 0.18, yTop: 0.24, yBot: -0.28 },
+            { x: -0.55, wTop: 0.48, wBot: 0.26, yTop: 0.1, yBot: -0.32 },
+            { x: 0.1, wTop: 0.5, wBot: 0.28, yTop: 0.08, yBot: -0.33 },
+            { x: 0.68, wTop: 0.4, wBot: 0.2, yTop: 0.14, yBot: -0.28 },
+            { x: 1.18, wTop: 0.12, wBot: 0.04, yTop: 0.26, yBot: -0.12 }
+          ];
+
+      const hullFillMain = isSunny
+        ? xray
+          ? 'rgba(153, 27, 27, 0.22)'
+          : 'rgba(153, 27, 27, 0.94)'
+        : xray
+          ? 'rgba(146, 64, 14, 0.24)'
+          : 'rgba(146, 64, 14, 0.94)';
+      const hullFillUpper = isSunny
+        ? xray
+          ? 'rgba(254, 243, 199, 0.22)'
+          : 'rgba(248, 250, 252, 0.95)'
+        : xray
+          ? 'rgba(217, 119, 6, 0.22)'
+          : 'rgba(180, 83, 9, 0.94)';
+      const hullStroke = xray ? 'rgba(56, 189, 248, 0.82)' : 'rgba(250, 204, 21, 0.68)';
+
+      for (let i = 0; i < stations.length - 1; i++) {
+        const a = stations[i];
+        const b = stations[i + 1];
+        const yMidA = (a.yTop + a.yBot) * 0.5;
+        const yMidB = (b.yTop + b.yBot) * 0.5;
+        const wMidA = (a.wTop + a.wBot) * 0.54;
+        const wMidB = (b.wTop + b.wBot) * 0.54;
+
+        for (const side of [-1, 1]) {
+          // Lower hull strake (Adam crimson or Merry oak)
+          pushQuad(
+            [
+              [a.x, yMidA, side * wMidA],
+              [b.x, yMidB, side * wMidB],
+              [b.x, b.yBot, side * b.wBot],
+              [a.x, a.yBot, side * a.wBot]
+            ],
+            hullFillMain,
+            hullStroke,
+            xray ? 1.5 : 1.1
+          );
+          // Upper bulwark strake (Sunny white-and-gold trim or Merry dark timber)
+          pushQuad(
+            [
+              [a.x, a.yTop, side * a.wTop],
+              [b.x, b.yTop, side * b.wTop],
+              [b.x, yMidB, side * wMidB],
+              [a.x, yMidA, side * wMidA]
+            ],
+            hullFillUpper,
+            hullStroke,
+            xray ? 1.5 : 1.1
+          );
+        }
+
+        // Main Deck: Thousand Sunny lush green turf lawn vs Going Merry plank deck!
+        const deckFill = isSunny
+          ? xray
+            ? 'rgba(34, 197, 94, 0.28)'
+            : 'rgba(22, 163, 74, 0.92)'
+          : xray
+            ? 'rgba(217, 119, 6, 0.25)'
+            : 'rgba(217, 119, 6, 0.88)';
+        pushQuad(
+          [
+            [a.x, a.yTop - 0.02, -a.wTop * 0.94],
+            [b.x, b.yTop - 0.02, -b.wTop * 0.94],
+            [b.x, b.yTop - 0.02, b.wTop * 0.94],
+            [a.x, a.yTop - 0.02, a.wTop * 0.94]
+          ],
+          deckFill,
+          'rgba(250, 204, 21, 0.45)',
+          1.0
+        );
+      }
+
+      // Stern Transom cap
+      const st = stations[0];
+      pushQuad(
+        [
+          [st.x, st.yTop, -st.wTop],
+          [st.x, st.yTop, st.wTop],
+          [st.x, st.yBot, st.wBot],
+          [st.x, st.yBot, -st.wBot]
+        ],
+        hullFillMain,
+        hullStroke,
+        1.4
+      );
+
+      // Quarterdeck Cabin & Nami's Mikan Grove
+      if (isSunny) {
+        // Aquarium Bar & Lounge Cabin house (-0.88 to -0.32)
+        const cabFill = xray ? 'rgba(14, 165, 233, 0.34)' : 'rgba(248, 250, 252, 0.92)';
+        const roofFill = 'rgba(239, 68, 68, 0.9)';
+        for (const s of [-1, 1]) {
+          pushQuad(
+            [
+              [-0.88, 0.44, s * 0.38],
+              [-0.32, 0.44, s * 0.38],
+              [-0.32, 0.16, s * 0.42],
+              [-0.88, 0.2, s * 0.42]
+            ],
+            cabFill,
+            '#facc15',
+            1.2
+          );
+        }
+        pushQuad(
+          [
+            [-0.9, 0.46, -0.4],
+            [-0.3, 0.46, -0.4],
+            [-0.3, 0.46, 0.4],
+            [-0.9, 0.46, 0.4]
+          ],
+          roofFill,
+          '#fde047',
+          1.3
+        );
+      } else {
+        // Going Merry Cabin
+        pushQuad(
+          [
+            [-0.78, 0.34, -0.32],
+            [-0.28, 0.34, -0.32],
+            [-0.28, 0.34, 0.32],
+            [-0.78, 0.34, 0.32]
+          ],
+          'rgba(180, 83, 9, 0.92)',
+          '#fde047',
+          1.2
+        );
+      }
+
+      // Billowing 3D Canvas Sails
+      if (isSunny) {
+        // Main Mast Square Sail with Straw Hat Jolly Roger
+        const sCurve = 0.18;
+        pushQuad(
+          [
+            [0.08, 1.32, -0.58],
+            [0.08 + sCurve, 0.88, -0.62],
+            [0.08 + sCurve, 0.88, 0.62],
+            [0.08, 1.32, 0.58]
+          ],
+          xray ? 'rgba(248, 250, 252, 0.35)' : 'rgba(248, 250, 252, 0.93)',
+          'rgba(148, 163, 184, 0.7)',
+          1.2
+        );
+        pushQuad(
+          [
+            [0.08 + sCurve, 0.88, -0.62],
+            [0.06, 0.46, -0.58],
+            [0.06, 0.46, 0.58],
+            [0.08 + sCurve, 0.88, 0.62]
+          ],
+          xray ? 'rgba(241, 245, 249, 0.35)' : 'rgba(241, 245, 249, 0.93)',
+          'rgba(148, 163, 184, 0.7)',
+          1.2
+        );
+        // Mizzen Lateen Sail
+        pushQuad(
+          [
+            [-0.68, 1.08, 0],
+            [-1.12, 0.54, 0],
+            [-0.58, 0.52, 0.04],
+            [-0.62, 0.95, 0.04]
+          ],
+          xray ? 'rgba(254, 215, 170, 0.35)' : 'rgba(254, 243, 199, 0.9)',
+          'rgba(251, 146, 60, 0.7)',
+          1.1
+        );
+      } else {
+        // Going Merry Main Square Sail + Stern Lateen Sail
+        pushQuad(
+          [
+            [0.12, 1.18, -0.52],
+            [0.26, 0.78, -0.55],
+            [0.26, 0.78, 0.55],
+            [0.12, 1.18, 0.52]
+          ],
+          xray ? 'rgba(248, 250, 252, 0.38)' : 'rgba(248, 250, 252, 0.94)',
+          'rgba(148, 163, 184, 0.7)',
+          1.2
+        );
+        pushQuad(
+          [
+            [0.26, 0.78, -0.55],
+            [0.12, 0.38, -0.52],
+            [0.12, 0.38, 0.52],
+            [0.26, 0.78, 0.55]
+          ],
+          xray ? 'rgba(241, 245, 249, 0.38)' : 'rgba(241, 245, 249, 0.94)',
+          'rgba(148, 163, 184, 0.7)',
+          1.2
+        );
+      }
+
+      // Sort and paint 3D faces back-to-front
+      faces.sort((a, b) => a.avgZ - b.avgZ);
+      for (let i = 0; i < faces.length; i++) {
+        const f = faces[i];
+        ctx.save();
+        ctx.fillStyle = f.fill;
+        ctx.strokeStyle = f.stroke;
+        ctx.lineWidth = f.lineW;
+        ctx.beginPath();
+        ctx.moveTo(f.pts2d[0].sx, f.pts2d[0].sy);
+        for (let k = 1; k < f.pts2d.length; k++) {
+          ctx.lineTo(f.pts2d[k].sx, f.pts2d[k].sy);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 2. Masts, Crow's Nest Observatory & Mikan Trees
+      ctx.save();
+      const drawPole = (x1, y1, z1, x2, y2, z2, color, width) => {
+        const p1 = projShip(x1, y1, z1);
+        const p2 = projShip(x2, y2, z2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(p1.sx, p1.sy);
+        ctx.lineTo(p2.sx, p2.sy);
+        ctx.stroke();
+      };
+
+      if (isSunny) {
+        drawPole(0.06, 0.14, 0, 0.06, 1.56, 0, '#92400e', 5.5);
+        drawPole(-0.66, 0.44, 0, -0.66, 1.22, 0, '#92400e', 4.0);
+        // Crow's Nest Dome (Zoro's Gym / Observatory)
+        const dome = projShip(0.06, 1.5, 0);
+        ctx.fillStyle = '#f59e0b';
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(dome.sx, dome.sy, 11 * dome.persp, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        drawPole(0.12, 0.08, 0, 0.12, 1.34, 0, '#78350f', 5.0);
+        drawPole(-0.62, 0.34, 0, -0.62, 1.05, 0, '#78350f', 3.6);
+      }
+
+      // Nami's Mikan (Tangerine) Trees on Quarterdeck!
+      const mikanCoords = isSunny
+        ? [
+            [-0.58, 0.56, -0.18],
+            [-0.45, 0.56, 0.0],
+            [-0.58, 0.56, 0.18]
+          ]
+        : [
+            [-0.56, 0.44, -0.14],
+            [-0.44, 0.44, 0.0],
+            [-0.56, 0.44, 0.14]
+          ];
+      for (let m = 0; m < mikanCoords.length; m++) {
+        const mc = mikanCoords[m];
+        const mp = projShip(mc[0], mc[1], mc[2]);
+        ctx.fillStyle = '#15803d';
+        ctx.beginPath();
+        ctx.arc(mp.sx, mp.sy, 8.5 * mp.persp, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fb923c';
+        ctx.beginPath();
+        ctx.arc(mp.sx + 3, mp.sy - 2, 2.6 * mp.persp, 0, Math.PI * 2);
+        ctx.arc(mp.sx - 3, mp.sy + 2, 2.4 * mp.persp, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Straw Hat Jolly Roger Emblem on Front of Main Sail
+      const sailCenter = projShip(isSunny ? 0.24 : 0.25, isSunny ? 0.89 : 0.78, 0);
+      if (sailCenter.z > -0.25) {
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.arc(sailCenter.sx, sailCenter.sy, 11 * sailCenter.persp, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.ellipse(
+          sailCenter.sx,
+          sailCenter.sy - 3 * sailCenter.persp,
+          14 * sailCenter.persp,
+          5 * sailCenter.persp,
+          0,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(sailCenter.sx - 9 * sailCenter.persp, sailCenter.sy - 3 * sailCenter.persp);
+        ctx.lineTo(sailCenter.sx + 9 * sailCenter.persp, sailCenter.sy - 3 * sailCenter.persp);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 3. X-Ray Interior Cutaway Organs (Soldier Dock Wheel 0-5, Aquarium Bar, 3 Cola Barrels)
+      if (xray || isSunny) {
+        // On Sunny, side paddle-shield doors #1/#2 are visible outside; in X-Ray, full 6-channel wheel glows inside!
+        if (isSunny && xray) {
+          ctx.save();
+          const dockHub = projShip(0.02, -0.1, 0);
+          const wheelR = 38 * dockHub.persp;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+          ctx.strokeStyle = '#facc15';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(dockHub.sx, dockHub.sy, wheelR, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          for (let ch = 0; ch < 6; ch++) {
+            const a0 = (ch / 6) * Math.PI * 2 - Math.PI * 0.5 + this.elapsed * 0.25;
+            const a1 = ((ch + 1) / 6) * Math.PI * 2 - Math.PI * 0.5 + this.elapsed * 0.25;
+            const isSel = this.selectedDockChannel === ch;
+            ctx.beginPath();
+            ctx.moveTo(dockHub.sx, dockHub.sy);
+            ctx.arc(dockHub.sx, dockHub.sy, wheelR - 2, a0, a1);
+            ctx.closePath();
+            ctx.fillStyle = isSel ? 'rgba(250, 204, 21, 0.55)' : 'rgba(56, 189, 248, 0.16)';
+            ctx.fill();
+            ctx.strokeStyle = isSel ? '#fde047' : 'rgba(148, 163, 184, 0.45)';
+            ctx.lineWidth = isSel ? 2.2 : 1;
+            ctx.stroke();
+
+            const midA = (a0 + a1) * 0.5;
+            ctx.fillStyle = isSel ? '#ffffff' : '#bae6fd';
+            ctx.font = '800 10px system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(
+              String(ch),
+              dockHub.sx + Math.cos(midA) * wheelR * 0.64,
+              dockHub.sy + Math.sin(midA) * wheelR * 0.64
+            );
+          }
+
+          // Aquarium Bar glowing cyan tank
+          const aq = projShip(-0.56, 0.12, 0);
+          ctx.fillStyle = 'rgba(34, 211, 238, 0.45)';
+          ctx.strokeStyle = '#67e8f9';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(aq.sx, aq.sy, 17 * aq.persp, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          // 3 Giant Cola Energy Barrels at Stern
+          for (let b = -1; b <= 1; b++) {
+            const cb = projShip(-0.98, -0.06, b * 0.16);
+            ctx.fillStyle = '#dc2626';
+            ctx.strokeStyle = '#fde047';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.arc(cb.sx, cb.sy, 8.5 * cb.persp, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          }
+          ctx.restore();
+        } else if (!isSunny && xray) {
+          // Going Merry X-Ray: Usopp's iron hull clamps + Klabautermann warm heart core
+          ctx.save();
+          const heart = projShip(0.05, -0.08, 0);
+          const hGrad = ctx.createRadialGradient(
+            heart.sx,
+            heart.sy,
+            2,
+            heart.sx,
+            heart.sy,
+            28 * heart.persp
+          );
+          hGrad.addColorStop(0, 'rgba(253, 224, 71, 0.95)');
+          hGrad.addColorStop(1, 'rgba(250, 204, 21, 0)');
+          ctx.fillStyle = hGrad;
+          ctx.beginPath();
+          ctx.arc(heart.sx, heart.sy, 28 * heart.persp, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      // 4. Canonical Figurehead: Sunny's Golden Lion Mane (Gaon Cannon) vs Merry's White Ram!
+      ctx.save();
+      if (isSunny) {
+        const bow = projShip(1.36, 0.36, 0);
+        const petalSpin = this.gaonCannonTimer > 0 ? this.elapsed * 18 : Math.sin(this.elapsed) * 0.08;
+        const maneR = 20 * bow.persp;
+        for (let p = 0; p < 12; p++) {
+          const ang = (p / 12) * Math.PI * 2 + petalSpin;
+          const px = bow.sx + Math.cos(ang) * maneR;
+          const py = bow.sy + Math.sin(ang) * maneR;
+          ctx.fillStyle = p % 2 === 0 ? '#f97316' : '#facc15';
+          ctx.beginPath();
+          ctx.arc(px, py, 6.5 * bow.persp, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = '#fef3c7';
+        ctx.strokeStyle = '#b45309';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(bow.sx, bow.sy, 12.5 * bow.persp, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Gaon Cannon Mouth / Beam!
+        if (this.gaonCannonTimer > 0) {
+          const muzzle = projShip(1.48, 0.36, 0);
+          const target = projShip(3.6, 0.36, 0);
+          ctx.save();
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.92)';
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 24;
+          ctx.lineWidth = 22 * bow.persp;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(muzzle.sx, muzzle.sy);
+          ctx.lineTo(target.sx, target.sy);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 10 * bow.persp;
+          ctx.beginPath();
+          ctx.moveTo(muzzle.sx, muzzle.sy);
+          ctx.lineTo(target.sx, target.sy);
+          ctx.stroke();
+          ctx.restore();
+        }
+      } else {
+        // Going Merry White Ram Figurehead with Curved Horns + Golden Klabautermann Sparkles
+        const ram = projShip(1.25, 0.32, 0);
+        ctx.fillStyle = '#f8fafc';
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(ram.sx, ram.sy, 11 * ram.persp, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // Curved sheep horns
+        ctx.strokeStyle = '#fde68a';
+        ctx.lineWidth = 3.2;
+        ctx.beginPath();
+        ctx.arc(ram.sx - 6, ram.sy + 2, 7 * ram.persp, 0, Math.PI * 1.5);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(ram.sx + 6, ram.sy + 2, 7 * ram.persp, -Math.PI * 0.5, Math.PI);
+        ctx.stroke();
+
+        // Klabautermann spirit motes around Going Merry
+        for (let k = 0; k < 8; k++) {
+          const ka = this.elapsed * 1.4 + k * 0.8;
+          const sp = projShip(Math.cos(ka) * 0.9, 0.35 + Math.sin(ka * 1.7) * 0.4, Math.sin(ka) * 0.45);
+          ctx.fillStyle = 'rgba(253, 224, 71, 0.78)';
+          ctx.beginPath();
+          ctx.arc(sp.sx, sp.sy, 3.2 * sp.persp, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+
+      // 5. Coup de Burst Stern Cola Rocket Plume!
+      if (this.coupDeBurstTimer > 0 || this.gaonCannonTimer > 0) {
+        const sternNozzle = projShip(-1.32, 0.05, 0);
+        const jetEnd = projShip(-2.95, -0.25, 0);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.9)';
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 20;
+        ctx.lineWidth = 18 * sternNozzle.persp;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(sternNozzle.sx, sternNozzle.sy);
+        ctx.lineTo(jetEnd.sx, jetEnd.sy);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#e0f2fe';
+        ctx.lineWidth = 8 * sternNozzle.persp;
+        ctx.beginPath();
+        ctx.moveTo(sternNozzle.sx, sternNozzle.sy);
+        ctx.lineTo(jetEnd.sx, jetEnd.sy);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 6. Shipwright Dock HUD Banner & Active System Readout
+      ctx.save();
+      if (this.gaonCannonTimer > 0) {
+        ctx.fillStyle = '#fde047';
+        ctx.font = '800 15px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🦁 GAON CANNON — 5-BARREL COLA BEAM FIRED! 🦁', cx, 36);
+      } else if (this.coupDeBurstTimer > 0) {
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = '800 15px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🚀 COUP DE BURST — 1 KM COLA ROCKET SKY-LEAP! 🚀', cx, 36);
+      }
+
+      const plateW = Math.min(w - 28, 470);
+      const plateX = cx - plateW * 0.5;
+      const plateY = h - 56;
+      ctx.fillStyle = 'rgba(9, 13, 24, 0.85)';
+      ctx.strokeStyle = xray ? 'rgba(56, 189, 248, 0.7)' : 'rgba(250, 204, 21, 0.55)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(plateX, plateY, plateW, 42, 12);
+      } else {
+        ctx.rect(plateX, plateY, plateW, 42);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#fde047';
+      ctx.font = '800 12px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(
+        isSunny
+          ? '⛵ THOUSAND SUNNY — BRIGANTINE SLOOP (TREASURE TREE ADAM)'
+          : '🐑 GOING MERRY — CARAVEL (KLABAUTERMANN SPIRIT)',
+        cx,
+        plateY + 17
+      );
+      ctx.fillStyle = '#bae6fd';
+      ctx.font = '600 10.5px system-ui, sans-serif';
+      ctx.fillText(
+        isSunny
+          ? (xray ? '🩻 X-RAY HULL ACTIVE • ' : '🛡️ HULL SEALED • ') +
+              'SOLDIER DOCK CHANNEL ' +
+              this.selectedDockChannel +
+              ' LOCKED'
+          : (xray ? '🩻 X-RAY HULL ACTIVE • ' : '') + 'SYRUP VILLAGE CARAVEL • DRAG TO ROTATE 360°',
+        cx,
+        plateY + 33
+      );
       ctx.restore();
     }
   }

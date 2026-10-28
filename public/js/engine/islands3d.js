@@ -286,6 +286,45 @@
       ctx.moveTo(16, -11);
       ctx.lineTo(-16, 11);
       ctx.stroke();
+    } else if (shape === 'egghead-dome') {
+      // Egghead Labophase Sea Cloud + Cracked Giant Egg (Punk Records) + Neon Laser Ring!
+      ctx.fillStyle = '#e0f2fe';
+      ctx.beginPath();
+      ctx.ellipse(0, 2, 13, 4.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Giant Punk Records Egg
+      ctx.fillStyle = '#fdf2f8';
+      ctx.strokeStyle = '#ec4899';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.ellipse(0, -5, 8.5, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Horizontal egg crack + equatorial ring
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.ellipse(0, -4, 13, 3.5, Math.sin(elapsed * 2) * 0.15, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (shape === 'elbaph-tree') {
+      // Elbaph Colossal Treasure Tree Adam (Yggdrasil Multi-Realm World Tree!)
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.moveTo(-6, 8);
+      ctx.lineTo(-3, -11);
+      ctx.lineTo(3, -11);
+      ctx.lineTo(6, 8);
+      ctx.closePath();
+      ctx.fill();
+      // Sun World & Heaven World Emerald Canopies
+      ctx.fillStyle = '#16a34a';
+      ctx.beginPath();
+      ctx.ellipse(0, -4, 14, 4.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#4ade80';
+      ctx.beginPath();
+      ctx.ellipse(0, -11, 11, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     ctx.restore();

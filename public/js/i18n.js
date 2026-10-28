@@ -633,6 +633,70 @@
     }
   };
 
+  var V3_UI_PATCH = {
+    en: {
+      tabShips: '⛵ 3D Shipwright Dock',
+      spoilerPreTimeskip: '🌊 Pre-Timeskip (Ep 1–516)',
+      spoilerEgghead: '🔥 Egghead & Elbaph (Ep 1086+)'
+    },
+    es: {
+      tabShips: '⛵ Astillero 3D (Sunny y Merry)',
+      spoilerPreTimeskip: '🌊 Pre-Timeskip (Ep 1–516)',
+      spoilerEgghead: '🔥 Egghead y Elbaph (Ep 1086+)'
+    },
+    zh: {
+      tabShips: '⛵ 3D 船坞剖面图 (桑尼号)',
+      spoilerPreTimeskip: '🌊 顶上战争前 (第1–516集)',
+      spoilerEgghead: '🔥 蛋头岛与艾尔巴夫篇 (1086集+)'
+    },
+    yue: {
+      tabShips: '⛵ 3D 船塢剖面圖 (烈陽號)',
+      spoilerPreTimeskip: '🌊 頂上戰爭前 (第1–516集)',
+      spoilerEgghead: '🔥 蛋頭島與艾爾巴夫篇 (1086集+)'
+    },
+    ja: {
+      tabShips: '⛵ 3D 造船ドック (サニー号)',
+      spoilerPreTimeskip: '🌊 マリンフォードまで (1〜516話)',
+      spoilerEgghead: '🔥 エッグヘッド＆エルバフ編 (1086話〜)'
+    },
+    ko: {
+      tabShips: '⛵ 3D 조선소 도크 (써니호)',
+      spoilerPreTimeskip: '🌊 정상전쟁까지 (1~516화)',
+      spoilerEgghead: '🔥 에그헤드 & 엘바프 (1086화+)'
+    },
+    pt: {
+      tabShips: '⛵ Estaleiro 3D (Sunny & Merry)',
+      spoilerPreTimeskip: '🌊 Pré-Timeskip (Ep 1–516)',
+      spoilerEgghead: '🔥 Egghead e Elbaph (Ep 1086+)'
+    },
+    fr: {
+      tabShips: '⛵ Chantier Naval 3D (Sunny)',
+      spoilerPreTimeskip: '🌊 Pré-Ellipse (Ép 1–516)',
+      spoilerEgghead: '🔥 Egghead & Elbaph (Ép 1086+)'
+    },
+    it: {
+      tabShips: '⛵ Cantiere Navale 3D (Sunny)',
+      spoilerPreTimeskip: '🌊 Pre-Timeskip (Ep 1–516)',
+      spoilerEgghead: '🔥 Egghead ed Elbaph (Ep 1086+)'
+    },
+    de: {
+      tabShips: '⛵ 3D-Schiffswerft (Sunny)',
+      spoilerPreTimeskip: '🌊 Vor dem Zeitsprung (Ep 1–516)',
+      spoilerEgghead: '🔥 Egghead & Elbaph (Ep 1086+)'
+    },
+    ar: {
+      tabShips: '⛵ حوض السفن ثلاثي الأبعاد (ساني)',
+      spoilerPreTimeskip: '🌊 ما قبل السنتين (ح 1–516)',
+      spoilerEgghead: '🔥 إيغهيد وإلباف (ح 1086+)'
+    }
+  };
+
+  Object.keys(V3_UI_PATCH).forEach(function (code) {
+    if (UI_STRINGS[code]) {
+      Object.assign(UI_STRINGS[code], V3_UI_PATCH[code]);
+    }
+  });
+
   function resolveLanguage(rawCode) {
     if (!rawCode || typeof rawCode !== 'string') return 'en';
     var cleaned = rawCode.trim().toLowerCase().replace('_', '-');

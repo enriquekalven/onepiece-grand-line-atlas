@@ -1327,6 +1327,311 @@
       ],
       kidBio:
         'Loves giant frosted donuts and protects his siblings fiercely! Katakuri sees seconds into the future with Observation Haki, pushing Luffy to reach a whole new level in their honorable duel!'
+    },
+    {
+      id: 'vegapunk',
+      name: 'Dr. Vegapunk ("Stella")',
+      epithet: '"The Man With the World\'s Biggest Brain"',
+      faction: 'Marines & World Gov',
+      crewSlot: 'navigator',
+      role: 'Chief Scientist of Egghead & Creator of Punk Records',
+      era: 'egghead',
+      posterHeader: 'MADS / EGGHEAD',
+      posterCondition: 'PROTECT AT ALL COSTS',
+      posterFooter: '— PUNK RECORDS',
+      image: '/assets/characters/vegapunk.jpg',
+      bounty: 0,
+      bountyText: 'PRICELESS GENIUS',
+      tier: 'World-Shaping Genius',
+      powerScore: 84,
+      accentColor: '#ec4899',
+      devilFruit: 'Nomi Nomi no Mi (Brain-Brain Fruit — Infinite Memory!)',
+      haki: [],
+      stats: { strength: 45, speed: 62, durability: 68, haki: 50, devilFruit: 96, battleIQ: 100 },
+      signatureMoves: [
+        'Frontier Dome Laser Defense & Vegaforce-01 Giant Mecha!',
+        'Sea Prism Stone Warship Hulls & Devil Fruit Object Infusion',
+        '6 Punk Satellites Synchronization & Global Void Century Broadcast!'
+      ],
+      kidBio:
+        'Born on snowy Karakuri Island with a mind 500 years ahead of humanity! Because his Brain-Brain Fruit grew his head as big as a giant building, he stored it inside Egghead\'s floating Punk Records dome, wears a cute apple antenna, and shouts "Quasar!" at every invention!'
+    },
+    {
+      id: 'kuma',
+      name: 'Bartholomew Kuma',
+      epithet: 'Hero of the Buccaneers & Devoted Father',
+      faction: 'Revolutionary Army',
+      crewSlot: 'helmsman',
+      role: 'Founding Revolutionary Commander & Former Warlord',
+      era: 'pre-timeskip',
+      image: '/assets/characters/kuma.jpg',
+      bounty: 296000000,
+      bountyText: '296,000,000 (Frozen)',
+      tier: 'Top Commander+',
+      powerScore: 89,
+      accentColor: '#f472b6',
+      devilFruit: 'Nikyu Nikyu no Mi (Paw-Paw Fruit — Repels Anything at Light Speed!)',
+      haki: [
+        { name: 'Observation Haki', advanced: false },
+        { name: 'Armament Haki (Devastating Father\'s Punch!)', advanced: true }
+      ],
+      stats: { strength: 95, speed: 92, durability: 96, haki: 88, devilFruit: 95, battleIQ: 88 },
+      signatureMoves: [
+        'Ursus Shock (Giant Paw-Shaped Compressed Air Bomb!)',
+        'Pad Ho (Light-Speed Air Paw Cannon)',
+        '3-Day Flying Paw Vacation & Pain-Bubble Repulsion!'
+      ],
+      kidBio:
+        'Though World Government propaganda called him "Tyrant," Kuma is actually the gentlest, most selfless father in One Piece! A descendant of the giant-blooded Buccaneer tribe who revered Sun God Nika, he saved all 9 Straw Hats at Sabaody, guarded the Thousand Sunny for 2 years, and crossed the world to protect his daughter Bonney on Egghead!',
+      eraSnapshots: {
+        'pre-timeskip': {
+          epithet: '"Tyrant" — Seven Warlords of the Sea',
+          faction: 'Seven Warlords / Legends',
+          role: 'Seven Warlords & Mystery Ally at Sabaody',
+          haki: [{ name: 'Observation Haki', advanced: false }],
+          kidBio:
+            'A towering Warlord carrying a book who shocked Thriller Bark and Sabaody! With his Paw-Paw Fruit pads, he sent each Straw Hat flying across the sky to the exact island they needed to grow stronger — and stayed behind to guard the Thousand Sunny!'
+        },
+        wano: {
+          epithet: 'Revolutionary Commander & Former Warlord',
+          faction: 'Revolutionary Army',
+          role: 'Revolutionary Officer Rescued from Mary Geoise',
+          haki: [
+            { name: 'Observation Haki', advanced: false },
+            { name: 'Armament Haki', advanced: false }
+          ],
+          kidBio:
+            'A founding officer of the Revolutionary Army alongside Dragon and Ivankov! Kuma used his Paw-Paw Fruit to save the entire Straw Hat crew at Sabaody and defended the Thousand Sunny for two full years before Sabo\'s squad rescued him!'
+        }
+      },
+      bountyHistory: [
+        { era: 'pre-timeskip', label: 'Seven Warlords Frozen Bounty', bounty: 296000000, text: '296,000,000 (FROZEN)' },
+        { era: 'egghead', label: 'Legendary Buccaneer Hero of Egghead', bounty: 296000000, text: '296,000,000+' }
+      ]
+    },
+    {
+      id: 'bonney',
+      name: 'Jewelry Bonney',
+      epithet: '"Big Eater" — Captain of the Bonney Pirates',
+      faction: 'Worst Generation',
+      crewSlot: 'cook-doctor',
+      role: 'Supernova Captain & Highest Pacifista Authority',
+      era: 'pre-timeskip',
+      image: '/assets/characters/bonney.jpg',
+      bounty: 320000000,
+      bountyText: '320,000,000',
+      tier: 'Supernova Elite',
+      powerScore: 86,
+      accentColor: '#fb7185',
+      devilFruit: 'Toshi Toshi no Mi (Age-Age Fruit — Distorted Future: Nika-ish Future!)',
+      haki: [
+        { name: 'Observation Haki', advanced: false },
+        { name: 'Armament Haki', advanced: false }
+      ],
+      stats: { strength: 86, speed: 87, durability: 83, haki: 80, devilFruit: 94, battleIQ: 85 },
+      signatureMoves: [
+        'Distorted Future: "A Future Where I\'m Most Free!" (Gear 5 Nika Form!)',
+        'NDE (Near-Death Experience Age Shock!)',
+        'Toshi Toshi: Giant Future Fist!'
+      ],
+      kidBio:
+        'Pizza-loving Supernova from South Blue and Bartholomew Kuma\'s beloved daughter! On Egghead, Dr. Vegapunk secretly gave Bonney supreme voice command over every Kuma Pacifista — and seeing Luffy\'s Gear 5 inspired her Age-Age Fruit to unlock a dazzling Nika-like future right beside him!',
+      eraSnapshots: {
+        'pre-timeskip': {
+          bounty: 140000000,
+          bountyText: '140,000,000',
+          tier: 'Supernova Rookie',
+          powerScore: 76,
+          role: '11 Supernovas Pirate Captain (Sabaody)',
+          devilFruit: 'Age-Manipulating Paramecia Power!',
+          signatureMoves: [
+            'Age Swap Touch (Turns Marines into Kids or Grandpas!)',
+            'Pizza Feast Stamina Boost!',
+            'Quick-Change Disguise Escape'
+          ],
+          kidBio:
+            'One of the 11 Supernovas at Sabaody Archipelago with a 140,000,000 Berry bounty! Famous for eating stacks of pizza ten times her height and turning attacking soldiers into toddlers or old men with a single touch!'
+        },
+        wano: {
+          bounty: 140000000,
+          bountyText: '140,000,000',
+          tier: 'Worst Generation Captain',
+          powerScore: 81,
+          role: 'Worst Generation Captain Infiltrating the Reverie',
+          devilFruit: 'Toshi Toshi no Mi (Age-Age Fruit — Paramecia)',
+          signatureMoves: [
+            'Age Manipulation Touch (Child / Elder Shift)',
+            'Queen Dowager Conney Disguise',
+            'Acrobatic Kick Combo'
+          ],
+          kidBio:
+            'Worst Generation captain from South Blue! Using her age-shifting Devil Fruit, she snuck right into Mary Geoise during the Reverie searching for Bartholomew Kuma!'
+        }
+      },
+      bountyHistory: [
+        { era: 'pre-timeskip', label: 'Sabaody 11 Supernovas', bounty: 140000000, text: '140,000,000' },
+        { era: 'egghead', label: 'Egghead Arc Reveal & Pacifista Authority', bounty: 320000000, text: '320,000,000' }
+      ]
+    },
+    {
+      id: 'saturn',
+      name: 'Saint Jaygarcia Saturn',
+      epithet: 'Warrior God of Science & Defense (Five Elders)',
+      faction: 'Marines & World Gov',
+      crewSlot: 'captain',
+      role: 'One of the Five Elders (Gorosei) of Mary Geoise',
+      era: 'egghead',
+      posterHeader: 'FIVE ELDERS',
+      posterCondition: 'HIGHEST WORLD AUTHORITY',
+      posterFooter: '— MARY GEOISE',
+      image: '/assets/characters/saturn.jpg',
+      bounty: 0,
+      bountyText: 'GOROSEI SUPREME AUTHORITY',
+      tier: 'Yonko / Elder Tier',
+      powerScore: 95,
+      accentColor: '#a855f7',
+      devilFruit: 'Awakened Abyssal Transformation: Gyuki (Venomous Spider-Ox Yokai!)',
+      haki: [
+        { name: 'Observation Haki (Planet-Scale Presence)', advanced: true },
+        { name: 'Armament Haki', advanced: true },
+        { name: "Conqueror's Haki (Black Lightning Abyssal Roar!)", advanced: true }
+      ],
+      stats: { strength: 93, speed: 88, durability: 99, haki: 96, devilFruit: 97, battleIQ: 94 },
+      signatureMoves: [
+        'Abyss Pentagram Summoning Circle (Calls All Five Elders!)',
+        'Venomous Nuclear Spit Bombs & Eye-Glare Paralysis',
+        'Immortal Dark-Flame Regeneration'
+      ],
+      kidBio:
+        'Descending onto Egghead through a black-lightning summoning circle, Elder Saturn transforms into the monstrous horned spider-demon Gyuki! His terrifying regeneration forced Gear 5 Luffy, Bonney, Kuma, and the Giant Warrior Pirates to unite in an all-out escape battle!'
+    },
+    {
+      id: 'lucci',
+      name: 'Rob Lucci',
+      epithet: '"Massacre Weapon" — CP0 Masked Assassin',
+      faction: 'Marines & World Gov',
+      crewSlot: 'first-mate',
+      role: 'Cipher Pol Aigis Zero (CP0) Field Leader',
+      era: 'pre-timeskip',
+      posterHeader: 'CIPHER POL CP0',
+      posterCondition: 'WORLD GOV INTELLIGENCE',
+      posterFooter: '— AIGIS ZERO',
+      image: '/assets/characters/lucci.jpg',
+      bounty: 0,
+      bountyText: 'CP0 TOP AGENT',
+      tier: '1st Commander',
+      powerScore: 89,
+      accentColor: '#eab308',
+      devilFruit: 'Neko Neko no Mi, Model: Leopard (Awakened Black-Flame Carnivorous Zoan!)',
+      haki: [
+        { name: 'Observation Haki', advanced: false },
+        { name: 'Armament Haki (Shigan + Tekkai)', advanced: true }
+      ],
+      stats: { strength: 90, speed: 95, durability: 88, haki: 89, devilFruit: 91, battleIQ: 93 },
+      signatureMoves: [
+        'Awakened Leopard Form (Black-Flame Hagoromo Scarf!)',
+        'Rokuogan (Six King Gun Internal Shockwave!)',
+        'Shugan: Madara (Hand-Pistol Barrage)'
+      ],
+      kidBio:
+        'Always accompanied by his tie-wearing pigeon Hattori! After pushing Luffy to the absolute limit at Enies Lobby as CP9\'s strongest prodigy in 800 years, Lucci returned in CP0 on Egghead with an Awakened Leopard Zoan — clashing with both Gear 5 Luffy and three-sword Roronoa Zoro!',
+      eraSnapshots: {
+        'pre-timeskip': {
+          epithet: 'Strongest CP9 Agent in 800 Years (4,000 Doriki!)',
+          role: 'Undercover Galley-La Shipwright → CP9 Assassin',
+          posterHeader: 'CIPHER POL No. 9',
+          posterFooter: '— ENIES LOBBY',
+          bountyText: '4,000 DORIKI (CP9)',
+          tier: 'Paradise Arc Boss',
+          powerScore: 80,
+          devilFruit: 'Neko Neko no Mi, Model: Leopard (Carnivorous Zoan)',
+          haki: [],
+          signatureMoves: [
+            'Rokuogan (Ultimate Six Powers Shockwave!)',
+            'Rankyaku Hyoubi (Leopard-Tail Air Slash)',
+            'Tobu Shigan: Bachi (Flying Finger Pistol)'
+          ],
+          kidBio:
+            'Worked undercover for 5 years as a silent Water 7 shipwright speaking through his pigeon Hattori! At Enies Lobby, Lucci\'s Leopard Zoan and Six Powers (Rokushiki) pushed Gear 2 & Gear 3 Luffy to one of the greatest 1v1 duels in anime history!'
+        },
+        wano: {
+          role: 'Cipher Pol Aigis Zero (CP0) Masked Operative',
+          devilFruit: 'Neko Neko no Mi, Model: Leopard (Carnivorous Zoan)',
+          powerScore: 86,
+          signatureMoves: [
+            'Rokuogan (Six King Gun)',
+            'Soru & Geppo Sky-Walk Mastery',
+            'Haki-Clad Shigan'
+          ],
+          kidBio:
+            'After Enies Lobby, Rob Lucci rose into the World Government\'s elite white-suited intelligence agency CP0 alongside Kaku and Hattori!'
+        }
+      }
+    },
+    {
+      id: 'dorry-brogy',
+      name: 'Captains Dorry & Brogy',
+      epithet: '"The Blue Ogre" & "The Red Ogre" of Elbaph',
+      faction: 'Four Emperors (Yonko)',
+      crewSlot: 'helmsman',
+      role: 'Co-Captains of the Giant Warrior Pirates (Shanks\'s Sworn Friends!)',
+      era: 'pre-timeskip',
+      image: '/assets/characters/dorry-brogy.jpg',
+      bounty: 3600000000,
+      bountyText: '1,800,000,000 EACH (3.6B DUO!)',
+      tier: 'Emperor Fleet Legends',
+      powerScore: 92,
+      accentColor: '#22c55e',
+      devilFruit: 'No Devil Fruit — Pure Giant Strength & Sun Shield Sval!',
+      haki: [
+        { name: 'Observation Haki', advanced: false },
+        { name: 'Armament Haki (Island-Splitting Hakoku!)', advanced: true }
+      ],
+      stats: { strength: 98, speed: 82, durability: 95, haki: 91, devilFruit: 85, battleIQ: 90 },
+      signatureMoves: [
+        'Hakoku Sovereignty (Combined Ocean-Cleaving Spear Beam!)',
+        'Sun Shield "Sval" Deflection (Blocks Elder Warcury!)',
+        '100-Year Little Garden Volcano Duel!'
+      ],
+      kidBio:
+        'After dueling 73,466 times for 100 years on Little Garden ("Gegyagyagya!" & "Gababababa!") and inspiring Usopp\'s dream of becoming a brave warrior of the sea, Dorry and Brogy returned to Egghead with massive 1,800,000,000 Berry bounties EACH to rescue their friend "Sun God" Luffy and sail the Straw Hats to Elbaph!',
+      eraSnapshots: {
+        'pre-timeskip': {
+          faction: 'Legends',
+          role: 'Legendary Co-Captains of the Giant Warrior Pirates (Little Garden)',
+          bounty: 200000000,
+          bountyText: '100,000,000 EACH (100 Yrs Ago)',
+          tier: 'Grand Line Giant Legends',
+          powerScore: 82,
+          haki: [],
+          signatureMoves: [
+            'Hakoku Sovereignty (Blasts Straight Through the Island Eater!)',
+            'Terry Sword & Brumel Axe Clash',
+            '100-Year Volcano Eruption Duel'
+          ],
+          kidBio:
+            'Two 22-meter-tall Elbaph Giant captains who dueled honorably on prehistoric Little Garden for 100 years! To thank the Straw Hats for defeating Mr. 3, they swung their worn-out weapons together in "Hakoku Sovereignty" to blast a path straight through a giant Sea Monster!'
+        },
+        wano: {
+          faction: 'Legends',
+          role: 'Co-Captains of the Giant Warrior Pirates',
+          bounty: 200000000,
+          bountyText: '100,000,000 EACH (Frozen Era)',
+          tier: 'New World Giant Legends',
+          powerScore: 86,
+          signatureMoves: [
+            'Hakoku Sovereignty (Elbaph Spear — Same Technique Big Mom & Kaido Echoed!)',
+            'Terry Sword & Brumel Axe',
+            'Warrior\'s Pride of Elbaph'
+          ],
+          kidBio:
+            'The legendary Elbaph Giant captains from Little Garden whose "Hakoku Sovereignty" inspired Usopp, Oimo, and Kashii — and foreshadowed the mighty Spear of Elbaph!'
+        }
+      },
+      bountyHistory: [
+        { era: 'pre-timeskip', label: '100-Year-Old Century Bounties (100M Each)', bounty: 200000000, text: '100,000,000 EACH' },
+        { era: 'egghead', label: 'Final Saga Active Bounties (1.8B Each / 3.6B Duo!)', bounty: 3600000000, text: '1,800,000,000 EACH' }
+      ]
     }
   ];
 

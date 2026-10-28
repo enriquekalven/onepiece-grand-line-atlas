@@ -88,7 +88,8 @@
       <div class="spoiler-shield-box">
         <label for="spoiler-select" id="spoiler-shield-label" class="spoiler-label">🛡️ Spoiler Shield:</label>
         <select id="spoiler-select" class="portal-select" aria-label="Select story spoiler level">
-          <option value="wano" id="spoiler-opt-wano" selected>⚔️ Up to Wano (Ep 1–1085)</option>
+          <option value="egghead" id="spoiler-opt-egghead" selected>🔥 Egghead &amp; Elbaph (Ep 1086+)</option>
+          <option value="wano" id="spoiler-opt-wano">⚔️ Up to Wano (Ep 1–1085)</option>
           <option value="pre-timeskip" id="spoiler-opt-pre">🌊 Pre-Timeskip (Ep 1–516)</option>
           <option value="east-blue" id="spoiler-opt-east">🌊 East Blue Only (Ep 1–61)</option>
         </select>
@@ -116,14 +117,17 @@
     <button type="button" class="nav-tab-btn" data-tab-btn="timeline" role="tab" aria-selected="false">
       🧭 3D Log Pose Timeline
     </button>
+    <button type="button" class="nav-tab-btn" data-tab-btn="ships" role="tab" aria-selected="false">
+      ⛵ 3D Shipwright Dock
+    </button>
     <button type="button" class="nav-tab-btn" data-tab-btn="characters" role="tab" aria-selected="false">
-      🏴‍☠️ Characters &amp; Power (30)
+      🏴‍☠️ Characters &amp; Vivre Cards (38)
     </button>
     <button type="button" class="nav-tab-btn" data-tab-btn="crew" role="tab" aria-selected="false">
       ⚓ Build Pirate Crew
     </button>
     <button type="button" class="nav-tab-btn" data-tab-btn="devil-fruits" role="tab" aria-selected="false">
-      🍇 3D Devil Fruits (18)
+      🍇 3D Devil Fruits (21)
     </button>
     <button type="button" class="nav-tab-btn" data-tab-btn="lore" role="tab" aria-selected="false">
       📜 Lore, Haki &amp; Quiz
@@ -140,7 +144,7 @@
         </span>
       </div>
 
-      <!-- Quick Switcher between 3D Globe and the 4 Canonical Manga/Anime Maps -->
+      <!-- Quick Switcher between 3D Globe and the 6 Canonical Manga/Anime Maps -->
       <div class="viewport-map-switcher" role="toolbar" aria-label="Switch between 3D Globe and Canonical Manga Maps">
         <button type="button" class="map-switch-btn active" data-view-switch="3d-globe">
           🌍 3D Planet Globe
@@ -157,13 +161,19 @@
         <button type="button" class="map-switch-btn" data-view-switch="wano-onigashima-woodblock-map">
           🐉 Wano &amp; Onigashima Map
         </button>
+        <button type="button" class="map-switch-btn" data-view-switch="thousand-sunny-cutaway">
+          ⛵ Sunny Cutaway Blueprint
+        </button>
+        <button type="button" class="map-switch-btn" data-view-switch="egghead-elbaph-map">
+          🧠 Egghead &amp; Elbaph Map
+        </button>
       </div>
 
       <div class="canvas-wrapper">
         <canvas
           id="globe-canvas"
           tabindex="0"
-          aria-label="Interactive 3D One Piece Globe, Manga Maps, and Devil Fruit Viewport."
+          aria-label="Interactive 3D One Piece Globe, Manga Maps, Shipwright Cutaway, and Devil Fruit Viewport."
         ></canvas>
       </div>
 
@@ -178,7 +188,7 @@
       </div>
     </section>
 
-    <!-- Right / Bottom: Interactive Lore, Maps, Timeline, Wanted Posters, Crew Builder & Quiz -->
+    <!-- Right / Bottom: Interactive Lore, Maps, Timeline, Shipwright Dock, Wanted Posters, Crew Builder & Quiz -->
     <aside class="inspector-section" aria-label="Interactive Lore and Character Inspector">
       <div id="inspector-content" class="inspector-scroll"></div>
     </aside>
@@ -203,6 +213,7 @@
   <script src="/js/data/maps-and-world.js"></script>
   <script src="/js/data/characters.js"></script>
   <script src="/js/data/fruits-and-lore.js"></script>
+  <script src="/js/data/ships.js"></script>
   <script src="/js/data/index.js"></script>
   <script src="/js/sound.js"></script>
   <script src="/js/engine/islands3d.js"></script>

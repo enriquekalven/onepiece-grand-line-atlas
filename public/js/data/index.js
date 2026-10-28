@@ -1,5 +1,5 @@
 /**
- * Grand Line 3D Portal — Unified Dataset & Pure Era-Safe / Geometry Helpers
+ * Grand Line 3D Portal (V3) — Unified Dataset & Pure Era-Safe / Geometry Helpers
  * Exposes window.ONE_PIECE_DATA and window.OP_HELPERS in browser, and module.exports in Node.js tests.
  */
 
@@ -14,15 +14,19 @@
   const fruitsAndLore =
     root.OP_FRUITS_AND_LORE ||
     (typeof require === 'function' ? require('./fruits-and-lore.js') : {});
+  const shipsAndVivre =
+    root.OP_SHIPS_AND_VIVRE ||
+    (typeof require === 'function' ? require('./ships.js') : {});
 
   const ERA_ORDER = {
     'east-blue': 0,
     'pre-timeskip': 1,
-    wano: 2
+    wano: 2,
+    egghead: 3
   };
 
   function isEraAllowed(itemEra, eraFilter) {
-    const activeRank = ERA_ORDER[eraFilter] !== undefined ? ERA_ORDER[eraFilter] : 2;
+    const activeRank = ERA_ORDER[eraFilter] !== undefined ? ERA_ORDER[eraFilter] : 3;
     const itemRank = ERA_ORDER[itemEra] !== undefined ? ERA_ORDER[itemEra] : 2;
     return itemRank <= activeRank;
   }
@@ -33,11 +37,16 @@
    */
   function getCharacterForEra(rawChar, eraFilter) {
     if (!rawChar) return null;
-    const snap =
-      rawChar.eraSnapshots && eraFilter !== 'wano'
-        ? rawChar.eraSnapshots[eraFilter] ||
-          (eraFilter === 'pre-timeskip' ? rawChar.eraSnapshots['east-blue'] : null)
-        : null;
+    let snap = null;
+    if (rawChar.eraSnapshots && eraFilter !== 'egghead') {
+      if (eraFilter === 'wano') {
+        snap = rawChar.eraSnapshots.wano || null;
+      } else if (eraFilter === 'pre-timeskip') {
+        snap = rawChar.eraSnapshots['pre-timeskip'] || rawChar.eraSnapshots['east-blue'] || null;
+      } else if (eraFilter === 'east-blue') {
+        snap = rawChar.eraSnapshots['east-blue'] || rawChar.eraSnapshots['pre-timeskip'] || null;
+      }
+    }
 
     const fullHistory = Array.isArray(rawChar.bountyHistory)
       ? rawChar.bountyHistory
@@ -63,26 +72,51 @@
             }
           ];
 
-    return {
-      ...rawChar,
+    const {
+      eraSnapshots,
+      wanoLaughNote,
+      eggheadLaugh,
+      eggheadLaughNote,
+      eggheadFavoriteFood,
+      ...baseChar
+    } = rawChar;
+
+    const unlockedWano = isEraAllowed('wano', eraFilter);
+    const unlockedEgghead = isEraAllowed('egghead', eraFilter);
+
+    const projected = {
+      ...baseChar,
       ...(snap || {}),
       bountyHistory: safeHistory,
-      canUseGear5Photo: rawChar.id === 'luffy' && eraFilter === 'wano'
+      canUseGear5Photo: rawChar.id === 'luffy' && unlockedWano
     };
+
+    if (unlockedWano && wanoLaughNote) {
+      projected.laughNote = wanoLaughNote;
+    }
+    if (unlockedEgghead) {
+      if (eggheadLaugh) projected.laugh = eggheadLaugh;
+      if (eggheadLaughNote) projected.laughNote = eggheadLaughNote;
+      if (eggheadFavoriteFood) projected.favoriteFood = eggheadFavoriteFood;
+    }
+
+    return projected;
   }
 
   function getDevilFruitForEra(rawFruit, eraFilter) {
     if (!rawFruit) return null;
-    const isWano = eraFilter === 'wano';
+    const unlockedWano = isEraAllowed('wano', eraFilter);
     return {
       ...rawFruit,
-      name: isWano && rawFruit.wanoTrueName ? rawFruit.wanoTrueName : rawFruit.name,
+      name: unlockedWano && rawFruit.wanoTrueName ? rawFruit.wanoTrueName : rawFruit.name,
       englishName:
-        isWano && rawFruit.wanoEnglishName ? rawFruit.wanoEnglishName : rawFruit.englishName,
-      user: isWano && rawFruit.wanoUser ? rawFruit.wanoUser : rawFruit.user,
+        unlockedWano && rawFruit.wanoEnglishName ? rawFruit.wanoEnglishName : rawFruit.englishName,
+      user: unlockedWano && rawFruit.wanoUser ? rawFruit.wanoUser : rawFruit.user,
       powerSummary:
-        isWano && rawFruit.wanoPowerSummary ? rawFruit.wanoPowerSummary : rawFruit.powerSummary,
-      awakened: isWano ? rawFruit.awakened : false
+        unlockedWano && rawFruit.wanoPowerSummary
+          ? rawFruit.wanoPowerSummary
+          : rawFruit.powerSummary,
+      awakened: unlockedWano ? rawFruit.awakened : false
     };
   }
 
@@ -98,14 +132,21 @@
     return res;
   }
 
+  const vivreMap = shipsAndVivre.vivreMetadata || {};
+  const enrichedCharacters = (charsMod.characters || []).map((c) => ({
+    ...(vivreMap[c.id] || {}),
+    ...c
+  }));
+
   const ONE_PIECE_DATA = {
     canonicalMaps: mapsAndWorld.canonicalMaps || [],
     worldLocations: mapsAndWorld.worldLocations || [],
     timelineArcs: mapsAndWorld.timelineArcs || [],
-    characters: charsMod.characters || [],
+    characters: enrichedCharacters,
     devilFruits: fruitsAndLore.devilFruits || [],
     loreTopics: fruitsAndLore.loreTopics || [],
-    quizQuestions: fruitsAndLore.quizQuestions || []
+    quizQuestions: fruitsAndLore.quizQuestions || [],
+    ships: shipsAndVivre.ships || []
   };
 
   const OP_HELPERS = {

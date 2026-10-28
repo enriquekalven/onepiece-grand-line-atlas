@@ -320,6 +320,127 @@
           note: 'Kaido lifted Onigashima into the sky on Flame Clouds while Luffy & Yamato defended Wano!'
         }
       ]
+    },
+    {
+      id: 'thousand-sunny-cutaway',
+      title: 'Thousand Sunny Blueprint: Adam Wood Hull, Aquarium Bar & Soldier Dock System',
+      badge: "Franky & Iceburg's Shipwright Blueprint",
+      era: 'pre-timeskip',
+      imageUrl: '/assets/maps/thousand-sunny-cutaway.jpg',
+      description:
+        'Crafted from priceless Treasure Tree Adam wood in Water 7! Franky\'s architectural cross-section reveals the bow-mounted Gaon Cannon inside the Lion Mane figurehead, the numbered Soldier Dock turntable wheel in the lower hull, the wraparound glass Aquarium Bar, Sanji\'s 7326-locked kitchen, Nami\'s Mikan tangerine grove, Zoro\'s Crow\'s Nest gym, and the 3-barrel Cola Coup de Burst stern rocket!',
+      hotspots: [
+        {
+          x: 16,
+          y: 52,
+          era: 'pre-timeskip',
+          label: '🦁 Lion Figurehead & Gaon Cannon',
+          locationId: 'water7-enies',
+          characterId: 'franky',
+          note: 'Spins its golden mane like a propeller or opens its jaws to fire the Cola-powered Gaon Cannon!'
+        },
+        {
+          x: 46,
+          y: 69,
+          era: 'pre-timeskip',
+          label: '⚙️ Soldier Dock System (Channels 0–5)',
+          locationId: 'water7-enies',
+          characterId: 'chopper',
+          note: 'Rotating hull wheel housing Paddlewheels (0), Shiro Mokuba (1), Mini Merry (2), Shark Submerge (3), Rhino (4) & Brachio Tank (5)!'
+        },
+        {
+          x: 54,
+          y: 49,
+          era: 'pre-timeskip',
+          label: '🐠 Aquarium Bar & 7326 Locked Galley',
+          locationId: 'sabaody-marineford',
+          characterId: 'sanji',
+          note: 'Wraparound live-fish tank lounge connected by dumbwaiter to Sanji\'s combination-locked fridge!'
+        },
+        {
+          x: 72,
+          y: 36,
+          era: 'pre-timeskip',
+          label: '🍊 Turf Lawn & Nami\'s Mikan Grove',
+          locationId: 'east-blue',
+          characterId: 'nami',
+          note: 'Real soil grass deck plus Bell-mère\'s 3 mikan tangerine trees and Robin\'s library dome!'
+        },
+        {
+          x: 41,
+          y: 17,
+          era: 'pre-timeskip',
+          label: '🏋️ Crow\'s Nest Observatory & Zoro\'s Gym',
+          locationId: 'wano-country',
+          characterId: 'zoro',
+          note: '24-hour lookout dome equipped with multi-ton barbells where Zoro trains across the Grand Line!'
+        },
+        {
+          x: 86,
+          y: 58,
+          era: 'pre-timeskip',
+          label: '🚀 Coup de Burst Cola Stern Thruster',
+          locationId: 'fishman-island',
+          characterId: 'jinbe',
+          note: 'Ignites 3 barrels of cola to blast the entire 56-meter ship 1 kilometer across the sky!'
+        }
+      ]
+    },
+    {
+      id: 'egghead-elbaph-map',
+      title: 'Final Saga Sea Chart: Future Island Egghead & Elbaph Kingdom of Giants',
+      badge: 'Chapter 1061–1130+ Final Saga Chart',
+      era: 'egghead',
+      imageUrl: '/assets/maps/egghead-elbaph-map.jpg',
+      description:
+        'Departing Wano\'s waterfall, the Straw Hats sail southeast into warm-eddy winter waters guarded by Mechanical Sea Beasts to reach Dr. Vegapunk\'s "Island of 500 Years in the Future" — Egghead (split into lower Fabriophase and cloud-borne Labophase / Punk Records)! Escaping the Buster Call alongside Dorry & Brogy\'s Giant Warrior Pirates, the crew sails northeast to Elbaph and the colossal Treasure Tree Adam!',
+      hotspots: [
+        {
+          x: 24,
+          y: 36,
+          era: 'egghead',
+          label: '🧠 Labophase & Punk Records Giant Egg Dome',
+          locationId: 'egghead',
+          characterId: 'vegapunk',
+          note: 'Floating on Island Clouds beneath the Frontier Dome laser grid — holds Dr. Vegapunk\'s giant shared brain!'
+        },
+        {
+          x: 26,
+          y: 66,
+          era: 'egghead',
+          label: '🤖 Fabriophase & Vegaforce-01 Hangar',
+          locationId: 'egghead',
+          characterId: 'bonney',
+          note: 'Futuristic hologram city warmed by Island Air-Con where Luffy, Jinbe, Chopper & Bonney first landed!'
+        },
+        {
+          x: 44,
+          y: 62,
+          era: 'egghead',
+          label: '🐾 Kuma\'s Heroic Arrival & Buster Call Escape',
+          locationId: 'egghead',
+          characterId: 'kuma',
+          note: 'Where Bartholomew Kuma crossed the Red Line to shield Bonney against Elder Saint Saturn and Admiral Kizaru!'
+        },
+        {
+          x: 56,
+          y: 54,
+          era: 'egghead',
+          label: '🛡️ Great Eirik (Giant Warrior Pirates Ship)',
+          locationId: 'elbaph',
+          characterId: 'dorry-brogy',
+          note: 'Captains Dorry & Brogy ("1.8 Billion" each!) cleaved Warcury back with Hakoku Sovereignty to escort the Sunny to Elbaph!'
+        },
+        {
+          x: 78,
+          y: 34,
+          era: 'egghead',
+          label: '🌳 Elbaph & Colossal Treasure Tree Adam',
+          locationId: 'elbaph',
+          characterId: 'luffy',
+          note: 'Fabled Warland of Giants! Its multi-realm world-tree (Underworld, Sun World, Heaven World) inspired Usopp & Luffy since Little Garden!'
+        }
+      ]
     }
   ];
 
@@ -687,6 +808,46 @@
         'Why "Laugh Tale"?: When Roger, Rayleigh, and Kozuki Oden read the true 800-year-old story left by Joy Boy, the entire crew burst into tears of laughter and named the island Laugh Tale!',
         'Treasure Hunt Tip: Collect all 4 Road Poneglyph rubbings in this portal to unlock the Golden Laugh Tale Celebration!'
       ]
+    },
+    {
+      id: 'egghead',
+      name: 'Future Island Egghead (Punk Records & Labophase)',
+      category: 'Grand Line — New World',
+      era: 'egghead',
+      lat: -8,
+      lon: 178,
+      altitude: 0.08,
+      color: '#ec4899',
+      islandShape: 'egghead-dome',
+      heroCharacterId: 'vegapunk',
+      mapId: 'egghead-elbaph-map',
+      subtitle: 'Dr. Vegapunk\'s "500 Years in the Future" Lab, Seraphim & Global Broadcast!',
+      summary:
+        'A World Government science island warmed by an Island Air-Conditioner! Below sits neon hologram city Fabriophase; floating on Island Clouds above sits the giant cracked-egg dome Punk Records (holding Dr. Vegapunk\'s shared brain and the Mother Flame reactor). Here Gear 5 Luffy clashed with CP0 Lucci, Admiral Kizaru, and all Five Elders while Kuma saved Bonney and Vegapunk broadcast the truth of the sinking world!',
+      keyFacts: [
+        '6 Vegapunk Satellites: Shaka (Good), Lilith (Evil), Edison (Thinking), Pythagoras (Wisdom), Atlas (Wrath), and York (Greed) sync memories daily to Punk Records!',
+        'Iron Giant Emeth: The 900-year-old Void Century robot awakened to Luffy\'s Drums of Liberation and unleashed a knot of Joy Boy\'s sealed Supreme King Haki!'
+      ]
+    },
+    {
+      id: 'elbaph',
+      name: 'Elbaph — Warland & Colossal Treasure Tree Adam',
+      category: 'Grand Line — New World',
+      era: 'egghead',
+      lat: 12,
+      lon: -162,
+      altitude: 0.11,
+      color: '#22c55e',
+      islandShape: 'elbaph-tree',
+      heroCharacterId: 'dorry-brogy',
+      mapId: 'egghead-elbaph-map',
+      subtitle: 'Fabled Kingdom of Giants, Jaguar D. Saul\'s Library & Usopp\'s Dream!',
+      summary:
+        'Escorted from Egghead aboard the Great Eirik by Giant Warrior Captains Dorry and Brogy, the Straw Hats reach Elbaph — the proudest warrior nation in the New World! Towering miles into the clouds stands the primordial Treasure Tree Adam, dividing Elbaph into three mythic realms (Underworld, Sun World, and Heaven World) and sheltering the surviving books of Ohara!',
+      keyFacts: [
+        'Ohara\'s Legacy Lives On: Jaguar D. Saul and the Giants salvaged Ohara\'s books from the lake so Nico Robin\'s homeland scholarship was never lost!',
+        'Sun God Mythology: Elbaph\'s ancient Harley murals and Giant legends revere Sun God Nika — the Warrior of Liberation!'
+      ]
     }
   ];
 
@@ -921,6 +1082,44 @@
         'As Kaido lifts Onigashima into the sky and Yamato holds the rooftop, Sanji ignites blue Ifrit Jambe, Zoro unlocks King of Hell, Law & Kid awaken their fruits to defeat Big Mom, and Luffy awakens GEAR 5 to defeat Kaido with the Drums of Liberation!',
       worldLesson:
         'With Road Poneglyph #3 found deep under Mt. Fuji, the Straw Hats hold 3 of the 4 crimson stones — and Luffy & Buggy join Shanks & Blackbeard as the new Four Emperors!'
+    },
+    {
+      step: 13,
+      id: 'future-island-egghead',
+      saga: 'Final Saga (Part 1)',
+      title: 'Future Island Egghead, Kuma\'s Memory & Vegapunk\'s Global Broadcast!',
+      era: 'egghead',
+      ship: 'Thousand Sunny (Vegaforce-01 Sky Lift)',
+      locationId: 'egghead',
+      heroCharacterId: 'vegapunk',
+      mapId: 'egghead-elbaph-map',
+      episodes: 'Episodes 1086–1122+ (Ch. 1060–1125)',
+      bountyMilestone: '3,000,000,000 Berries (Emperor Luffy) & 320,000,000 (Bonney)',
+      crewJoined: ['Vegapunk Lilith & Bonney (Sailing Guests!)'],
+      mainBoss: 'CP0 Rob Lucci, Admiral Kizaru & All Five Elders (Saint Saturn!)',
+      storySummary:
+        'Landing on futuristic Egghead, the crew meets Dr. Vegapunk and his 6 Satellites! As a massive 100-ship Buster Call, Admiral Kizaru, and all Five Elders converge, Bartholomew Kuma crosses the globe to rescue Bonney, Bonney transforms alongside Gear 5 Luffy, Iron Giant Emeth unleashes Joy Boy\'s Haki knot, and Vegapunk broadcasts the shocking secret of the Void Century to the entire world!',
+      worldLesson:
+        'Vegapunk reveals that the One Piece world sank 200 meters during the Void Century war — and today\'s islands are the surviving mountaintops of ancient continents!'
+    },
+    {
+      step: 14,
+      id: 'elbaph-giants-kingdom',
+      saga: 'Final Saga (Part 2)',
+      title: 'Elbaph: Kingdom of Giants, Treasure Tree Adam & Ohara\'s Reunion!',
+      era: 'egghead',
+      ship: 'Great Eirik & Thousand Sunny',
+      locationId: 'elbaph',
+      heroCharacterId: 'dorry-brogy',
+      mapId: 'egghead-elbaph-map',
+      episodes: 'Chapters 1126+',
+      bountyMilestone: '1,800,000,000 Berries EACH (Captains Dorry & Brogy!)',
+      crewJoined: [],
+      mainBoss: 'God\'s Knights & Underworld Mysteries',
+      storySummary:
+        'Toasting with Giants Captains Dorry and Brogy aboard the Great Eirik, Luffy and Usopp finally set foot in their dream land of Elbaph! Ascending the Rainbow Bridge into the Sun World of the colossal Treasure Tree Adam, Nico Robin shares a tearful reunion with Jaguar D. Saul ("Dereshishishi!") beside the rescued library of Ohara!',
+      worldLesson:
+        'Connects Little Garden (Ch. 115), Ohara (Ch. 391), Water 7\'s Adam Wood (Ch. 431), and Sun God Nika lore into one grand Final Saga tapestry!'
     }
   ];
 

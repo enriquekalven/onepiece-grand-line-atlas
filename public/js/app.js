@@ -44,8 +44,8 @@
     lang: I18N ? I18N.getInitialLanguage() : 'en',
     theme: getInitialTheme(),
     activeNarrationText: '',
-    activeTab: 'globe', // 'globe' | 'maps' | 'timeline' | 'characters' | 'crew' | 'devil-fruits' | 'lore'
-    eraFilter: 'wano',
+    activeTab: 'globe', // 'globe' | 'maps' | 'timeline' | 'ships' | 'characters' | 'crew' | 'devil-fruits' | 'lore'
+    eraFilter: 'egghead',
     showQuestDrawer: false,
     justUnlockedBanner: '',
     soundEnabled: saved.soundEnabled,
@@ -62,6 +62,10 @@
     activeArcIndex: 0,
     autoSailInterval: null,
 
+    selectedShipId: 'thousand-sunny',
+    selectedDockChannel: 2,
+    selectedShipRoomId: 'gaon-figurehead',
+
     selectedCharacterId: 'luffy',
     selectedBountyIndex: null, // null = latest unlocked milestone for active era
     luffyUseGear5Photo: true,
@@ -69,7 +73,7 @@
     characterFactionFilter: 'All',
     characterSearch: '',
     characterSort: 'story', // 'story' | 'bounty' | 'power'
-    activeArtBanner: 'strawhat', // 'strawhat' | 'yonko' | 'warlords' | 'favorites'
+    activeArtBanner: 'strawhat', // 'strawhat' | 'yonko' | 'warlords' | 'favorites' | 'egghead'
 
     selectedFruitId: 'gomu-nika',
     fruitCategoryFilter: 'All',
@@ -180,8 +184,12 @@
     const spoilerLabel = document.getElementById('spoiler-shield-label');
     if (spoilerLabel && t.spoilerLabel) spoilerLabel.textContent = t.spoilerLabel;
 
+    const optEgghead = document.getElementById('spoiler-opt-egghead');
+    if (optEgghead && t.spoilerEgghead) optEgghead.textContent = t.spoilerEgghead;
     const optWano = document.getElementById('spoiler-opt-wano');
     if (optWano && t.spoilerWano) optWano.textContent = t.spoilerWano;
+    const optPre = document.getElementById('spoiler-opt-pre');
+    if (optPre && t.spoilerPreTimeskip) optPre.textContent = t.spoilerPreTimeskip;
     const optEast = document.getElementById('spoiler-opt-east');
     if (optEast && t.spoilerEastBlue) optEast.textContent = t.spoilerEastBlue;
 
@@ -189,6 +197,7 @@
       globe: t.tabWorld,
       maps: t.tabMaps,
       timeline: t.tabTimeline,
+      ships: t.tabShips,
       characters: t.tabCharacters,
       crew: t.tabCrew,
       'devil-fruits': t.tabFruits,
@@ -335,7 +344,7 @@
   function syncLaughTaleEngineLock() {
     if (!engine3D) return;
     const allFour = countPoneglyphs(state.poneglyphs) === 4;
-    engine3D.setLaughTaleUnlocked(allFour && state.eraFilter === 'wano');
+    engine3D.setLaughTaleUnlocked(allFour && isEraAllowed('wano'));
   }
 
   function updatePoneglyphHeaderUI() {
@@ -370,11 +379,11 @@
   }
 
   function checkLocationPoneglyphs(locationId) {
-    if (locationId === 'zou') {
+    if (locationId === 'zou' || locationId === 'zou-zunesha') {
       awardPoneglyph('zou', 'Whale Forest Rubbing on Zunesha');
-    } else if (locationId === 'whole-cake') {
+    } else if (locationId === 'whole-cake' || locationId === 'whole-cake-island') {
       awardPoneglyph('wholeCake', "Brook's Secret Rubbing from Whole Cake Vault");
-    } else if (locationId === 'wano') {
+    } else if (locationId === 'wano' || locationId === 'wano-country') {
       awardPoneglyph('wano', 'Submerged Old Wano Rubbing beneath Mt. Fuji');
     }
   }
@@ -460,6 +469,18 @@
 
     if (tabId === 'maps') {
       openMangaMapInViewport(state.activeMapId);
+    } else if (tabId === 'ships') {
+      const safeShipId = isEraAllowed('pre-timeskip') ? state.selectedShipId : 'going-merry';
+      state.selectedShipId = safeShipId;
+      engine3D.setShip(safeShipId);
+      engine3D.setSelectedDockChannel(state.selectedDockChannel);
+      engine3D.setMode('ship-dock');
+      updateViewportSwitcherHighlight('3d-globe');
+      if (viewportBadge) viewportBadge.textContent = '⛵ 3D WATER 7 SHIPWRIGHT DOCK';
+      if (viewportHint) {
+        viewportHint.textContent =
+          'Drag to rotate 360° • Toggle 🩻 Hull X-Ray Cutaway • Fire Gaon Cannon & Coup de Burst!';
+      }
     } else if (tabId === 'devil-fruits') {
       engine3D.setMode('devil-fruit');
       updateViewportSwitcherHighlight('3d-globe');
@@ -650,6 +671,8 @@
       renderMangaMapsInspector(container);
     } else if (state.activeTab === 'timeline') {
       renderTimelineInspector(container);
+    } else if (state.activeTab === 'ships') {
+      renderShipsInspector(container);
     } else if (state.activeTab === 'characters') {
       renderCharactersInspector(container);
     } else if (state.activeTab === 'crew') {
@@ -1118,7 +1141,7 @@
         : [el('span', { className: 'crew-tag muted', text: 'Crew Holds Strong' })];
 
     const arcPortraitSrc =
-      currentArc.id === 'onigashima-gear5' && state.eraFilter === 'wano'
+      currentArc.id === 'onigashima-gear5' && isEraAllowed('wano')
         ? '/assets/characters/luffy-gear5.jpg'
         : heroChar.image;
 
@@ -1181,7 +1204,228 @@
   }
 
   // =========================================================================
-  // TAB 4: CHARACTERS, ARTWORK, BOUNTY EVOLUTION SLIDER & 1v1 CLASH
+  // TAB 4: 3D WATER 7 SHIPWRIGHT DOCK (THOUSAND SUNNY & GOING MERRY CUTAWAY)
+  // =========================================================================
+  function renderShipsInspector(container) {
+    const allowedShips = (DATA.ships || []).filter((s) => isEraAllowed(s.era));
+    const activeShip =
+      allowedShips.find((s) => s.id === state.selectedShipId) || allowedShips[0];
+    if (!activeShip) return;
+    state.selectedShipId = activeShip.id;
+    engine3D.setShip(activeShip.id);
+
+    const shipSelectorRow = el(
+      'div',
+      { className: 'chip-row', attrs: { role: 'group', 'aria-label': 'Select Straw Hat Ship' } },
+      allowedShips.map((s) =>
+        el('button', {
+          type: 'button',
+          className: 'chip-btn' + (s.id === activeShip.id ? ' active' : ''),
+          text: (s.id === 'thousand-sunny' ? '🦁 ' : '🐑 ') + s.shortName,
+          onClick: () => {
+            state.selectedShipId = s.id;
+            state.selectedDockChannel = 0;
+            state.selectedShipRoomId = s.rooms && s.rooms[0] ? s.rooms[0].id : '';
+            engine3D.setShip(s.id);
+            engine3D.setSelectedDockChannel(0);
+            engine3D.setMode('ship-dock');
+            soundFX.playLogPoseChime();
+            renderActivePanel();
+          }
+        })
+      )
+    );
+
+    const isSunny = activeShip.id === 'thousand-sunny';
+    const xrayOn = Boolean(engine3D && engine3D.shipXrayCutaway);
+
+    const actionButtons = [
+      el('button', {
+        type: 'button',
+        className: 'action-btn ' + (xrayOn ? 'primary' : 'secondary'),
+        text: xrayOn ? '🩻 Hull X-Ray Cutaway: ON' : '🩻 Toggle 3D Hull X-Ray Cutaway',
+        onClick: () => {
+          engine3D.setMode('ship-dock');
+          engine3D.toggleShipXray();
+          soundFX.playLogPoseChime();
+          renderActivePanel();
+        }
+      }),
+      el('button', {
+        type: 'button',
+        className: 'action-btn gold',
+        text: isSunny
+          ? '🚀 Fire Coup de Burst! (3 Cola Barrels)'
+          : '🕊️ Activate Jaya Flying Model Leap!',
+        onClick: () => {
+          engine3D.setMode('ship-dock');
+          engine3D.triggerCoupDeBurst();
+          soundFX.playCoupDeBurst();
+          if (ANALYTICS) {
+            ANALYTICS.trackEvent('ship_coup_de_burst', { ship: activeShip.id });
+          }
+        }
+      })
+    ];
+
+    if (isSunny) {
+      actionButtons.push(
+        el('button', {
+          type: 'button',
+          className: 'action-btn primary',
+          text: '🦁 Fire Gaon Cannon! (5 Cola Barrels)',
+          onClick: () => {
+            engine3D.setMode('ship-dock');
+            engine3D.triggerGaonCannon();
+            soundFX.playGaonCannon();
+            if (ANALYTICS) {
+              ANALYTICS.trackEvent('ship_gaon_cannon', { ship: activeShip.id });
+            }
+          }
+        })
+      );
+    }
+
+    const allowedChannels = (activeShip.channels || []).filter((ch) => isEraAllowed(ch.era));
+    if (state.selectedDockChannel >= allowedChannels.length) {
+      state.selectedDockChannel = 0;
+    }
+    const activeChannel = allowedChannels[state.selectedDockChannel] || allowedChannels[0];
+
+    const channelGrid = el(
+      'div',
+      { className: 'dock-channel-grid' },
+      allowedChannels.map((ch, idx) =>
+        el(
+          'button',
+          {
+            type: 'button',
+            className: 'dock-channel-btn' + (idx === state.selectedDockChannel ? ' active' : ''),
+            onClick: () => {
+              state.selectedDockChannel = idx;
+              engine3D.setMode('ship-dock');
+              engine3D.setSelectedDockChannel(idx);
+              if (!engine3D.shipXrayCutaway && isSunny) {
+                engine3D.toggleShipXray();
+              }
+              soundFX.playLogPoseChime();
+              renderActivePanel();
+            }
+          },
+          [
+            el('span', { className: 'dock-ch-num', text: ch.channel }),
+            el('span', { className: 'dock-ch-vehicle', text: ch.name })
+          ]
+        )
+      )
+    );
+
+    const rooms = activeShip.rooms || [];
+    const activeRoom =
+      rooms.find((r) => r.id === state.selectedShipRoomId) || rooms[0];
+    if (activeRoom) state.selectedShipRoomId = activeRoom.id;
+
+    const roomPills = el(
+      'div',
+      { className: 'location-pill-grid' },
+      rooms.map((rm) =>
+        el(
+          'button',
+          {
+            type: 'button',
+            className: 'location-pill' + (activeRoom && rm.id === activeRoom.id ? ' selected' : ''),
+            onClick: () => {
+              state.selectedShipRoomId = rm.id;
+              soundFX.playLogPoseChime();
+              renderActivePanel();
+            }
+          },
+          [el('span', { text: rm.icon + ' ' + rm.name })]
+        )
+      )
+    );
+
+    const shipwrightChar = getSafeCharacterById(isSunny ? 'franky' : 'usopp');
+    const blueprintMap = getMapById(activeShip.blueprintMapId);
+
+    const shipCard = el('article', { className: 'feature-card' }, [
+      el('div', { className: 'card-kicker-row' }, [
+        el('span', { className: 'badge-pill', text: '⛵ ' + activeShip.classType }),
+        el('span', { className: 'coord-badge', text: activeShip.dimensions })
+      ]),
+      el('div', { className: 'island-hero-header' }, [
+        el('img', {
+          className: 'island-hero-portrait',
+          src: shipwrightChar.image,
+          alt: shipwrightChar.name
+        }),
+        el('div', {}, [
+          el('h2', { className: 'card-title', text: activeShip.name }),
+          el('p', { className: 'card-subtitle', text: '🔨 ' + activeShip.shipwright })
+        ])
+      ]),
+      el('p', { className: 'card-body-text', text: activeShip.summary }),
+      el('div', { className: 'ship-action-grid' }, actionButtons),
+      el('h3', {
+        className: 'section-subhead',
+        text: isSunny
+          ? '⚙️ Soldier Dock System Turntable (Channels 0–5)'
+          : '🐑 Going Merry Signature Shipwright Features'
+      }),
+      channelGrid,
+      activeChannel
+        ? el('div', { className: 'lesson-callout' }, [
+            el('strong', { text: activeChannel.channel + ' — ' + activeChannel.name }),
+            el('p', { text: activeChannel.summary })
+          ])
+        : null,
+      el('h3', {
+        className: 'section-subhead',
+        text: '🏠 Interior Decks, Galley, Aquarium Bar & Rooms'
+      }),
+      roomPills,
+      activeRoom
+        ? el('div', { className: 'lesson-callout' }, [
+            el('strong', {
+              text: activeRoom.icon + ' ' + activeRoom.name + ' (' + activeRoom.deck + ')'
+            }),
+            el('p', { text: activeRoom.detail })
+          ])
+        : null,
+      el('div', { className: 'embedded-map-preview' }, [
+        el('div', { className: 'card-kicker-row' }, [
+          el('strong', {
+            className: 'section-subhead',
+            text: '📐 Official Architectural Blueprint: ' + blueprintMap.title
+          }),
+          el('button', {
+            type: 'button',
+            className: 'action-btn gold compact',
+            text: '🔍 Open Blueprint in Main Viewport',
+            onClick: () => {
+              state.activeMapId = blueprintMap.id;
+              switchTab('maps');
+            }
+          })
+        ]),
+        el('img', {
+          className: 'map-preview-img',
+          src: blueprintMap.imageUrl,
+          alt: blueprintMap.title,
+          onClick: () => {
+            state.activeMapId = blueprintMap.id;
+            switchTab('maps');
+          }
+        })
+      ])
+    ]);
+
+    container.appendChild(shipSelectorRow);
+    container.appendChild(shipCard);
+  }
+
+  // =========================================================================
+  // TAB 5: CHARACTERS, VIVRE CARDS, SIGNATURE LAUGHS & 1v1 CLASH
   // =========================================================================
   function getFilteredAndSortedCharacters() {
     const query = state.characterSearch.trim().toLowerCase();
@@ -1200,7 +1444,9 @@
             ' ' +
             ch.devilFruit +
             ' ' +
-            ch.faction
+            ch.faction +
+            ' ' +
+            (ch.laugh || '')
           ).toLowerCase();
           if (!hay.includes(query)) return false;
         }
@@ -1216,7 +1462,7 @@
   }
 
   function renderCharactersInspector(container) {
-    // Era-filtered Key Visual Art Banners (never leaks Gear 5 / Wano in beginner modes!)
+    // Era-filtered Key Visual Art Banners (never leaks Gear 5 / Wano / Egghead in beginner modes!)
     const banners = [
       {
         key: 'strawhat',
@@ -1245,6 +1491,13 @@
         btnText: '⚡ Gear 5 vs. Kaido & Emperors',
         src: '/assets/characters/yonko_gear5_banner.jpg',
         caption: '⚡ Wano Climax: Gear 5 Luffy vs. Kaido + Shanks, Whitebeard, Roger, Law & Kid!'
+      },
+      {
+        key: 'egghead',
+        era: 'egghead',
+        btnText: '🧠 Egghead & Elbaph Legends',
+        src: '/assets/characters/egghead_legends_grid.jpg',
+        caption: '🧠 Egghead & Elbaph: Dr. Vegapunk, Kuma, Jewelry Bonney, Saint Saturn, Awakened Lucci & Dorry/Brogy!'
       }
     ].filter((b) => isEraAllowed(b.era));
 
@@ -1282,7 +1535,7 @@
         type: 'search',
         className: 'portal-search-input',
         value: state.characterSearch,
-        placeholder: '🔍 Search 30+ pirates, Marines, or Devil Fruits...',
+        placeholder: '🔍 Search 38 pirates, Marines, Giants, Laughs, or Devil Fruits...',
         attrs: { 'aria-label': 'Search characters' },
         onInput: (e) => {
           state.characterSearch = e.target.value;
@@ -1537,6 +1790,67 @@
           text: 'Overall Power Level: ' + activeChar.powerScore + ' / 100'
         })
       ]),
+      el('div', { className: 'vivre-card-binder' }, [
+        el('div', { className: 'vivre-binder-header' }, [
+          el('strong', {
+            className: 'meta-label',
+            text: '🗂️ OFFICIAL VIVRE CARD & SBS COLLECTOR RECORD'
+          }),
+          el('span', {
+            className: 'vivre-id-pill',
+            text: 'VIVRE CARD #' + (activeChar.vivreId || '0001')
+          })
+        ]),
+        el('div', { className: 'vivre-meta-grid' }, [
+          el('div', { className: 'vivre-meta-cell' }, [
+            el('span', { className: 'vivre-meta-label', text: '🎂 Birthday' }),
+            el('span', { className: 'vivre-meta-val', text: activeChar.birthday || 'Unknown' })
+          ]),
+          el('div', { className: 'vivre-meta-cell' }, [
+            el('span', { className: 'vivre-meta-label', text: '🌊 Origin Sea' }),
+            el('span', { className: 'vivre-meta-val', text: activeChar.originSea || 'Grand Line' })
+          ]),
+          el('div', { className: 'vivre-meta-cell' }, [
+            el('span', { className: 'vivre-meta-label', text: '🍖 Favorite Food' }),
+            el('span', {
+              className: 'vivre-meta-val',
+              text: activeChar.favoriteFood || 'Pirate Banquet Feast'
+            })
+          ])
+        ]),
+        activeChar.laugh
+          ? el('div', { className: 'signature-laugh-bar' }, [
+              el('div', { className: 'laugh-quote-col' }, [
+                el('span', {
+                  className: 'laugh-quote-text',
+                  text: '😂 "' + activeChar.laugh + '"'
+                }),
+                activeChar.laughNote
+                  ? el('span', { className: 'laugh-note-text', text: activeChar.laughNote })
+                  : null
+              ]),
+              el('button', {
+                type: 'button',
+                className: 'laugh-play-btn',
+                text: '🔊 Play Signature Laugh!',
+                onClick: () => {
+                  soundFX.playSignatureLaugh(
+                    activeChar.laugh,
+                    activeChar.laughPitch,
+                    activeChar.laughRate,
+                    state.lang
+                  );
+                  if (ANALYTICS) {
+                    ANALYTICS.trackEvent('play_signature_laugh', {
+                      character: activeChar.id,
+                      laugh: activeChar.laugh
+                    });
+                  }
+                }
+              })
+            ])
+          : null
+      ]),
       el('p', { className: 'card-body-text', text: activeChar.kidBio }),
       el('div', { className: 'char-split-row' }, [
         el('div', { className: 'char-details-col' }, [
@@ -1694,7 +2008,7 @@
   }
 
   // =========================================================================
-  // TAB 6: 3D DEVIL FRUIT ENCYCLOPEDIA (18 Era-Safe Fruits + Live Search!)
+  // TAB 7: 3D DEVIL FRUIT ENCYCLOPEDIA (21 Era-Safe Fruits + Live Search!)
   // =========================================================================
   function getFilteredFruits() {
     const q = state.fruitSearch.trim().toLowerCase();
@@ -1739,6 +2053,13 @@
         btnText: '⚡ Zukan Plate III: Admirals & Wano',
         src: '/assets/banners/zukan-admirals-wano.jpg',
         caption: '⚡ Akuma no Mi Zukan Plate III — Yomi Yomi, Ito Ito, Pika Pika, Hie Hie, Magu Magu & Wolf Deity!'
+      },
+      {
+        key: 'egghead',
+        era: 'egghead',
+        btnText: '🧠 Zukan Plate IV: Egghead Arc',
+        src: '/assets/banners/zukan-egghead.jpg',
+        caption: '🧠 Akuma no Mi Zukan Plate IV — Nikyu Nikyu (Paw), Nomi Nomi (Brain) & Toshi Toshi (Age)!'
       }
     ].filter((p) => isEraAllowed(p.era));
 
@@ -1776,7 +2097,7 @@
         type: 'search',
         className: 'portal-search-input',
         value: state.fruitSearch,
-        placeholder: '🔍 Search 18 Devil Fruits or wielders (e.g. Law, Ice, Magma, Phoenix)...',
+        placeholder: '🔍 Search 21 Devil Fruits or wielders (e.g. Paw, Brain, Law, Magma, Phoenix)...',
         attrs: { 'aria-label': 'Search Devil Fruits' },
         onInput: (e) => {
           state.fruitSearch = e.target.value;
@@ -1838,7 +2159,7 @@
 
     const wielderChar = getSafeCharacterById(activeFruit.characterId || 'luffy');
     const wielderImgUrl =
-      activeFruit.id === 'gomu-nika' && state.eraFilter === 'wano'
+      activeFruit.id === 'gomu-nika' && isEraAllowed('wano')
         ? '/assets/characters/luffy-gear5.jpg'
         : wielderChar.image;
 
@@ -1850,7 +2171,7 @@
         engine3D.setMode('devil-fruit');
         engine3D.setDevilFruit(activeFruit);
         engine3D.triggerPowerBurst();
-        if (activeFruit.id === 'gomu-nika' && state.eraFilter === 'wano') {
+        if (activeFruit.id === 'gomu-nika' && isEraAllowed('wano')) {
           soundFX.playDrumsOfLiberation();
         } else {
           soundFX.playHakiBoom();
@@ -2275,6 +2596,10 @@
             DATA.devilFruits.find((f) => f.id === state.selectedFruitId && isEraAllowed(f.era)) ||
             DATA.devilFruits[0];
           engine3D.setDevilFruit(HELPERS.getDevilFruitForEra(rawFruit, state.eraFilter));
+        } else if (state.activeTab === 'ships') {
+          const safeShip = isEraAllowed('pre-timeskip') ? state.selectedShipId : 'going-merry';
+          state.selectedShipId = safeShip;
+          engine3D.setShip(safeShip);
         }
 
         soundFX.playLogPoseChime();

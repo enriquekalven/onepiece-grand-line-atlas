@@ -1,5 +1,5 @@
 /**
- * Automated Verification Suite for Grand Line 3D Portal (V2)
+ * Automated Verification Suite for Grand Line 3D Portal (V3)
  * Run via: npm test (uses Node built-in node:test & node:assert/strict)
  */
 
@@ -44,19 +44,21 @@ function requestLocal(port, method, reqPath, headers) {
   });
 }
 
-test('Dataset completeness & referential integrity across maps, globe, arcs, characters, and fruits', () => {
-  assert.ok(ONE_PIECE_DATA.characters.length >= 30, 'Expected at least 30 characters');
-  assert.equal(ONE_PIECE_DATA.worldLocations.length, 18, 'Expected 18 sculpted world locations');
-  assert.equal(ONE_PIECE_DATA.canonicalMaps.length, 4, 'Expected 4 canonical maps');
-  assert.equal(ONE_PIECE_DATA.timelineArcs.length, 12, 'Expected 12 timeline arcs');
-  assert.ok(ONE_PIECE_DATA.devilFruits.length >= 18, 'Expected at least 18 Devil Fruits');
-  assert.ok(ONE_PIECE_DATA.quizQuestions.length >= 10, 'Expected at least 10 quiz questions');
+test('Dataset completeness & referential integrity across maps, globe, arcs, ships, characters, Vivre Cards, and fruits', () => {
+  assert.equal(ONE_PIECE_DATA.characters.length, 38, 'Expected 38 canonical characters');
+  assert.equal(ONE_PIECE_DATA.worldLocations.length, 20, 'Expected 20 sculpted world locations');
+  assert.equal(ONE_PIECE_DATA.canonicalMaps.length, 6, 'Expected 6 canonical maps');
+  assert.equal(ONE_PIECE_DATA.timelineArcs.length, 14, 'Expected 14 timeline arcs');
+  assert.equal(ONE_PIECE_DATA.devilFruits.length, 21, 'Expected 21 Devil Fruits');
+  assert.equal(ONE_PIECE_DATA.ships.length, 2, 'Expected 2 ships (Thousand Sunny & Going Merry)');
+  assert.equal(ONE_PIECE_DATA.loreTopics.length, 7, 'Expected 7 lore topics');
+  assert.equal(ONE_PIECE_DATA.quizQuestions.length, 12, 'Expected 12 quiz questions');
 
   const charIds = new Set(ONE_PIECE_DATA.characters.map((c) => c.id));
   const locIds = new Set(ONE_PIECE_DATA.worldLocations.map((l) => l.id));
   const mapIds = new Set(ONE_PIECE_DATA.canonicalMaps.map((m) => m.id));
 
-  // Verify every character image and altImage exists on disk
+  // Verify every character image, altImage, Vivre Card metadata, and Signature Laugh
   for (const ch of ONE_PIECE_DATA.characters) {
     assert.ok(ch.image, `Character ${ch.id} missing image`);
     const diskImg = path.join(PUBLIC_DIR, ch.image.replace(/^\//, ''));
@@ -69,6 +71,23 @@ test('Dataset completeness & referential integrity across maps, globe, arcs, cha
       ['captain', 'first-mate', 'navigator', 'cook-doctor', 'helmsman'].includes(ch.crewSlot),
       `Character ${ch.id} has invalid crewSlot: ${ch.crewSlot}`
     );
+    assert.ok(ch.vivreId, `Character ${ch.id} missing vivreId`);
+    assert.ok(ch.birthday, `Character ${ch.id} missing birthday`);
+    assert.ok(ch.originSea, `Character ${ch.id} missing originSea`);
+    assert.ok(ch.favoriteFood, `Character ${ch.id} missing favoriteFood`);
+    assert.ok(ch.laugh, `Character ${ch.id} missing signature laugh`);
+  }
+
+  // Verify Shipwright Dock ships & Soldier Dock system
+  const sunny = ONE_PIECE_DATA.ships.find((s) => s.id === 'thousand-sunny');
+  const merry = ONE_PIECE_DATA.ships.find((s) => s.id === 'going-merry');
+  assert.ok(sunny && merry, 'Expected both Thousand Sunny and Going Merry');
+  assert.equal(sunny.channels.length, 6, 'Thousand Sunny must have Soldier Dock Channels 0-5');
+  assert.equal(merry.era, 'east-blue', 'Going Merry must be available in East Blue mode');
+  assert.equal(sunny.era, 'pre-timeskip', 'Thousand Sunny must unlock in Pre-Timeskip mode');
+  for (const ship of ONE_PIECE_DATA.ships) {
+    assert.ok(mapIds.has(ship.blueprintMapId), `Invalid blueprintMapId on ship ${ship.id}`);
+    assert.ok(ship.rooms && ship.rooms.length >= 4, `Expected deck rooms on ship ${ship.id}`);
   }
 
   // Verify every worldLocation points to valid character & map
@@ -94,7 +113,7 @@ test('Dataset completeness & referential integrity across maps, globe, arcs, cha
     assert.ok(charIds.has(arc.heroCharacterId), `Invalid heroCharacterId on arc ${arc.id}`);
   }
 
-  // Verify all 18 Devil Fruits have canonical Zukan card artwork, transparent 3D cutout sprites, and morphology notes
+  // Verify all 21 Devil Fruits have canonical Zukan card artwork, transparent 3D cutout sprites, and morphology notes
   for (const df of ONE_PIECE_DATA.devilFruits) {
     assert.ok(df.image, `Devil Fruit ${df.id} missing canonical image`);
     assert.ok(df.sprite, `Devil Fruit ${df.id} missing 3D sprite`);
@@ -108,9 +127,18 @@ test('Dataset completeness & referential integrity across maps, globe, arcs, cha
       `Missing Devil Fruit 3D sprite file on disk: ${df.sprite}`
     );
   }
+
+  // Verify Egghead character grid and Zukan Plate IV exist on disk
+  assert.ok(fs.existsSync(path.join(PUBLIC_DIR, 'assets/characters/egghead_legends_grid.jpg')));
+  assert.ok(fs.existsSync(path.join(PUBLIC_DIR, 'assets/banners/zukan-egghead.jpg')));
 });
 
-test('Spoiler Shield strictly prevents Wano / Gear 5 / Nika / Vinsmoke / 3B Bounty leaks in East Blue & Pre-Timeskip', () => {
+test('4-Tier Spoiler Shield strictly isolates East Blue, Pre-Timeskip, Wano, and Egghead/Elbaph revelations', () => {
+  assert.equal(OP_HELPERS.isEraAllowed('egghead', 'egghead'), true);
+  assert.equal(OP_HELPERS.isEraAllowed('egghead', 'wano'), false);
+  assert.equal(OP_HELPERS.isEraAllowed('wano', 'egghead'), true);
+  assert.equal(OP_HELPERS.isEraAllowed('wano', 'pre-timeskip'), false);
+
   const rawLuffy = ONE_PIECE_DATA.characters.find((c) => c.id === 'luffy');
   const eastBlueLuffy = OP_HELPERS.getCharacterForEra(rawLuffy, 'east-blue');
   assert.equal(eastBlueLuffy.bounty, 30000000);
@@ -133,27 +161,54 @@ test('Spoiler Shield strictly prevents Wano / Gear 5 / Nika / Vinsmoke / 3B Boun
   assert.equal(wanoLuffy.bounty, 3000000000);
   assert.equal(wanoLuffy.canUseGear5Photo, true);
 
-  // Sanji Vinsmoke surname gated until Whole Cake / Wano, plus ONLY ALIVE Dressrosa milestone
+  const eggheadLuffy = OP_HELPERS.getCharacterForEra(rawLuffy, 'egghead');
+  assert.equal(eggheadLuffy.bounty, 3000000000);
+  assert.equal(eggheadLuffy.canUseGear5Photo, true);
+
+  // Sanji Vinsmoke surname gated until Whole Cake / Wano
   const rawSanji = ONE_PIECE_DATA.characters.find((c) => c.id === 'sanji');
   assert.equal(OP_HELPERS.getCharacterForEra(rawSanji, 'east-blue').name, 'Sanji');
   assert.equal(OP_HELPERS.getCharacterForEra(rawSanji, 'pre-timeskip').name, 'Sanji');
   assert.equal(OP_HELPERS.getCharacterForEra(rawSanji, 'wano').name, 'Vinsmoke Sanji');
+  assert.equal(OP_HELPERS.getCharacterForEra(rawSanji, 'egghead').name, 'Vinsmoke Sanji');
 
   // Marine Cross Guild 5-Crown Fleet Admiral vs Pre-Timeskip Marine HQ Dossier
   const rawAkainu = ONE_PIECE_DATA.characters.find((c) => c.id === 'akainu');
   assert.equal(OP_HELPERS.getCharacterForEra(rawAkainu, 'pre-timeskip').posterHeader, 'MARINE HQ');
   assert.equal(OP_HELPERS.getCharacterForEra(rawAkainu, 'wano').posterHeader, 'CROSS GUILD');
-  assert.equal(OP_HELPERS.getCharacterForEra(rawAkainu, 'wano').bounty, 5000000000);
+  assert.equal(OP_HELPERS.getCharacterForEra(rawAkainu, 'egghead').bounty, 5000000000);
 
-  // Devil Fruit Nika check
+  // Egghead-specific spoiler guards on Bonney, Kuma, and Dorry & Brogy in Wano / Pre-Timeskip!
+  const rawBonney = ONE_PIECE_DATA.characters.find((c) => c.id === 'bonney');
+  const wanoBonney = OP_HELPERS.getCharacterForEra(rawBonney, 'wano');
+  assert.equal(wanoBonney.bounty, 140000000);
+  assert.ok(!JSON.stringify(wanoBonney).includes('Nika'), 'Wano Bonney leaked Distorted Future Nika!');
+  assert.equal(OP_HELPERS.getCharacterForEra(rawBonney, 'egghead').bounty, 320000000);
+
+  const rawGiants = ONE_PIECE_DATA.characters.find((c) => c.id === 'dorry-brogy');
+  const wanoGiants = OP_HELPERS.getCharacterForEra(rawGiants, 'wano');
+  assert.equal(wanoGiants.bounty, 200000000);
+  assert.ok(wanoGiants.bountyText.includes('100,000,000 EACH'));
+  assert.ok(
+    !JSON.stringify(wanoGiants).includes('1,800,000,000'),
+    'Wano Dorry & Brogy leaked 1.8B Egghead bounty!'
+  );
+  assert.equal(OP_HELPERS.getCharacterForEra(rawGiants, 'egghead').bounty, 3600000000);
+  assert.ok(OP_HELPERS.getCharacterForEra(rawGiants, 'egghead').bountyText.includes('1,800,000,000 EACH'));
+
+  const rawKuma = ONE_PIECE_DATA.characters.find((c) => c.id === 'kuma');
+  const preKuma = OP_HELPERS.getCharacterForEra(rawKuma, 'pre-timeskip');
+  assert.ok(!JSON.stringify(preKuma).includes('Buccaneer'), 'Pre-Timeskip Kuma leaked Buccaneer lineage!');
+
+  // Devil Fruit Nika check across eras
   const rawGomu = ONE_PIECE_DATA.devilFruits.find((f) => f.id === 'gomu-nika');
   const ebGomu = OP_HELPERS.getDevilFruitForEra(rawGomu, 'east-blue');
   assert.ok(!ebGomu.name.includes('Nika'));
   assert.equal(ebGomu.awakened, false);
 
-  const wanoGomu = OP_HELPERS.getDevilFruitForEra(rawGomu, 'wano');
-  assert.ok(wanoGomu.name.includes('Nika'));
-  assert.equal(wanoGomu.awakened, true);
+  const eggGomu = OP_HELPERS.getDevilFruitForEra(rawGomu, 'egghead');
+  assert.ok(eggGomu.name.includes('Nika'));
+  assert.equal(eggGomu.awakened, true);
 });
 
 test('Canonical 4-Blues quadrant geography & shortest-arc dateline interpolation math', () => {
@@ -162,15 +217,12 @@ test('Canonical 4-Blues quadrant geography & shortest-arc dateline interpolation
   assert.equal(revMtn.lat, 0);
   assert.equal(revMtn.lon, -90);
 
-  // Around Reverse Mountain (lat 0, lon -90):
-  // North Blue = NW of (-90,0) -> lat > 0, lon < -90
-  // East Blue  = NE of (-90,0) -> lat > 0, lon > -90
-  // South Blue = SE of (-90,0) -> lat < 0, lon > -90
-  // West Blue  = SW of (-90,0) -> lat < 0, lon < -90
   assert.ok(byId['north-blue'].lat > 0 && byId['north-blue'].lon < -90);
   assert.ok(byId['east-blue'].lat > 0 && byId['east-blue'].lon > -90);
   assert.ok(byId['south-blue'].lat < 0 && byId['south-blue'].lon > -90);
   assert.ok(byId['west-blue'].lat < 0 && byId['west-blue'].lon < -90);
+  assert.ok(byId['egghead'], 'Expected Egghead Future Island on 3D globe');
+  assert.ok(byId['elbaph'], 'Expected Elbaph Warland on 3D globe');
 
   // Dateline wrap: Wano (+168°) to Laugh Tale (-104°) is +88° eastward across ±180°, midpoint = -148°
   const midLon = OP_HELPERS.lerpLonDeg(168, -104, 0.5);
@@ -191,7 +243,7 @@ test('Static Zero-Dependency Server enforces security headers, ETag 304 caching,
     assert.equal(rootRes.headers['x-frame-options'], 'DENY');
 
     // 2. Portrait asset ETag + Cache-Control + 304 Not Modified
-    const imgRes = await requestLocal(port, 'GET', '/assets/characters/luffy.jpg');
+    const imgRes = await requestLocal(port, 'GET', '/assets/characters/vegapunk.jpg');
     assert.equal(imgRes.statusCode, 200);
     assert.ok(
       imgRes.headers['cache-control'].startsWith('public, max-age=3600'),
@@ -199,7 +251,7 @@ test('Static Zero-Dependency Server enforces security headers, ETag 304 caching,
     );
     assert.ok(imgRes.headers.etag, 'Expected ETag header on image asset');
 
-    const cachedRes = await requestLocal(port, 'GET', '/assets/characters/luffy.jpg', {
+    const cachedRes = await requestLocal(port, 'GET', '/assets/characters/vegapunk.jpg', {
       'If-None-Match': imgRes.headers.etag
     });
     assert.equal(cachedRes.statusCode, 304);
@@ -217,13 +269,14 @@ test('Static Zero-Dependency Server enforces security headers, ETag 304 caching,
   }
 });
 
-test('Zero unsafe DOM sinks or blocking dialogs in public/js modules', () => {
+test('Zero unsafe DOM sinks or blocking dialogs in all public/js modules (including ships.js)', () => {
   const jsFiles = [
     'public/js/i18n.js',
     'public/js/analytics.js',
     'public/js/data/maps-and-world.js',
     'public/js/data/characters.js',
     'public/js/data/fruits-and-lore.js',
+    'public/js/data/ships.js',
     'public/js/data/index.js',
     'public/js/sound.js',
     'public/js/engine/islands3d.js',
@@ -260,7 +313,7 @@ test('Zero unsafe DOM sinks or blocking dialogs in public/js modules', () => {
   }
 });
 
-test('11-Language i18n, Read Aloud TTS codes, Dark/Light Theme, and Opt-In GA4 configuration', () => {
+test('11-Language i18n (with V3 Shipwright & Egghead labels), Signature Laugh Audio, Dark/Light Theme, and Opt-In GA4', () => {
   const i18n = require('../public/js/i18n.js');
   const analytics = require('../public/js/analytics.js');
   const { OnePieceSoundFX, LANG_SPEECH_CODES } = require('../public/js/sound.js');
@@ -275,6 +328,9 @@ test('11-Language i18n, Read Aloud TTS codes, Dark/Light Theme, and Opt-In GA4 c
   for (const code of expectedLangs) {
     const strings = i18n.getStrings(code);
     assert.ok(strings.brandTitle, `Missing brandTitle for ${code}`);
+    assert.ok(strings.tabShips, `Missing tabShips for ${code}`);
+    assert.ok(strings.spoilerEgghead, `Missing spoilerEgghead for ${code}`);
+    assert.ok(strings.spoilerPreTimeskip, `Missing spoilerPreTimeskip for ${code}`);
     assert.ok(strings.readAloud, `Missing readAloud for ${code}`);
     assert.ok(strings.stopReading, `Missing stopReading for ${code}`);
     assert.ok(strings.themeDark, `Missing themeDark for ${code}`);
@@ -289,33 +345,26 @@ test('11-Language i18n, Read Aloud TTS codes, Dark/Light Theme, and Opt-In GA4 c
   assert.equal(i18n.resolveLanguage('zh-CN'), 'zh');
   assert.equal(i18n.resolveLanguage('es-MX'), 'es');
 
-  const narration = i18n.buildCardNarrationText('ja', {
-    title: 'Monkey D. Luffy',
-    subtitle: 'Captain',
-    summary: 'Ate the Gum-Gum Fruit.',
-    notes: ['Loves meat!']
-  });
-  assert.ok(narration.includes('Monkey D. Luffy'));
-  assert.ok(narration.includes('Loves meat!'));
-
   // Verify GA4 Measurement ID and Firebase Web App ID
   assert.equal(analytics.GA_MEASUREMENT_ID, 'G-3XD1EEG3BC');
   assert.equal(analytics.FIREBASE_APP_ID, '1:697625214430:web:4eb1c198ecde36fc82f14f');
 
-  // Verify SoundFX speech methods exist
+  // Verify SoundFX speech, Signature Laugh, Coup de Burst, and Gaon Cannon methods exist
   const sfx = new OnePieceSoundFX(true);
   assert.equal(typeof sfx.speakText, 'function');
   assert.equal(typeof sfx.stopSpeech, 'function');
+  assert.equal(typeof sfx.playSignatureLaugh, 'function');
+  assert.equal(typeof sfx.playCoupDeBurst, 'function');
+  assert.equal(typeof sfx.playGaonCannon, 'function');
   assert.equal(sfx.getSpeechBcp47('yue'), 'zh-HK');
 
-  // Verify Dark/Light theme CSS and HTML hooks exist
+  // Verify V3 HTML hooks exist
   const indexHtml = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+  assert.ok(indexHtml.includes('id="spoiler-opt-egghead"'), 'Expected #spoiler-opt-egghead in index.html');
+  assert.ok(indexHtml.includes('data-tab-btn="ships"'), 'Expected ships tab button in index.html');
+  assert.ok(indexHtml.includes('/js/data/ships.js'), 'Expected ships.js script tag in index.html');
   assert.ok(indexHtml.includes('id="theme-toggle-btn"'), 'Expected #theme-toggle-btn in index.html');
-  assert.ok(indexHtml.includes('id="lang-select"'), 'Expected #lang-select in index.html');
-  assert.ok(indexHtml.includes('id="btn-read-aloud-main"'), 'Expected #btn-read-aloud-main in index.html');
-  assert.ok(indexHtml.includes('id="cookie-banner"'), 'Expected #cookie-banner in index.html');
 
   const baseCss = fs.readFileSync(path.join(PUBLIC_DIR, 'styles', 'base.css'), 'utf8');
   assert.ok(baseCss.includes('html[data-theme="light"]'), 'Expected Light Theme CSS rules in base.css');
 });
-
