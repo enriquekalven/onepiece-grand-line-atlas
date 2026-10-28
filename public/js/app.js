@@ -22,10 +22,28 @@
     countPoneglyphs
   } = window.OP_DOM;
 
+  const I18N = window.OnePieceI18n;
+  const ANALYTICS = window.OnePieceAnalytics;
   const saved = loadPortalProgress();
   const soundFX = new window.OnePieceSoundFX(saved.soundEnabled);
 
+  function getInitialTheme() {
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const urlTheme = params.get('theme');
+      if (urlTheme === 'light' || urlTheme === 'dark') return urlTheme;
+      const stored = window.localStorage.getItem('onepiece-theme');
+      if (stored === 'light' || stored === 'dark') return stored;
+    } catch (_e) {
+      // Ignore storage errors
+    }
+    return 'dark';
+  }
+
   const state = {
+    lang: I18N ? I18N.getInitialLanguage() : 'en',
+    theme: getInitialTheme(),
+    activeNarrationText: '',
     activeTab: 'globe', // 'globe' | 'maps' | 'timeline' | 'characters' | 'crew' | 'devil-fruits' | 'lore'
     eraFilter: 'wano',
     showQuestDrawer: false,
@@ -64,6 +82,226 @@
   };
 
   let engine3D = null;
+
+  function getStrings() {
+    return I18N ? I18N.getStrings(state.lang) : {};
+  }
+
+  function syncReadAloudButtonsUI(speaking) {
+    const t = getStrings();
+    const label = speaking ? (t.stopReading || '⏹ Stop Reading') : (t.readAloud || '🗣️ Read Aloud');
+    const mainBtn = document.getElementById('btn-read-aloud-main');
+    if (mainBtn) {
+      mainBtn.textContent = label;
+      mainBtn.classList.toggle('speaking', Boolean(speaking));
+      mainBtn.setAttribute('aria-pressed', speaking ? 'true' : 'false');
+    }
+    const cardBtns = document.querySelectorAll('.card-read-aloud-btn');
+    cardBtns.forEach((btn) => {
+      btn.textContent = label;
+      btn.classList.toggle('speaking', Boolean(speaking));
+      btn.setAttribute('aria-pressed', speaking ? 'true' : 'false');
+    });
+  }
+
+  function applyThemeMode(themeMode) {
+    state.theme = themeMode === 'light' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = state.theme;
+    try {
+      window.localStorage.setItem('onepiece-theme', state.theme);
+    } catch (_e) {
+      // Ignore storage error
+    }
+    const t = getStrings();
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    if (themeBtn) {
+      themeBtn.textContent =
+        state.theme === 'dark' ? (t.themeLight || '☀️ Light') : (t.themeDark || '🌙 Dark');
+      themeBtn.setAttribute('aria-pressed', state.theme === 'light' ? 'true' : 'false');
+    }
+  }
+
+  function populateVoiceOptions() {
+    const voiceSelect = document.getElementById('narrator-voice-select');
+    if (!voiceSelect) return;
+    const t = getStrings();
+    const prevValue = voiceSelect.value;
+    clearNode(voiceSelect);
+    voiceSelect.appendChild(
+      el('option', { value: '', text: t.autoVoice || '✨ Best Voice (Auto)' })
+    );
+    const voices = soundFX.getVoicesForLang(state.lang);
+    voices.forEach((v) => {
+      const tag = v.localService ? 'HQ' : 'Cloud';
+      voiceSelect.appendChild(
+        el('option', {
+          value: v.voiceURI || v.name,
+          text: v.name + ' (' + v.lang + ' · ' + tag + ')'
+        })
+      );
+    });
+    if (prevValue && Array.from(voiceSelect.options).some((o) => o.value === prevValue)) {
+      voiceSelect.value = prevValue;
+    } else {
+      voiceSelect.value = '';
+      soundFX.setPreferredVoiceURI('');
+    }
+  }
+
+  function applyLanguageUI() {
+    if (!I18N) return;
+    const meta = I18N.getLanguageMeta(state.lang);
+    const t = I18N.getStrings(state.lang);
+    document.documentElement.lang = meta.code;
+    document.documentElement.dir = meta.dir || 'ltr';
+
+    const langSelect = document.getElementById('lang-select');
+    if (langSelect && langSelect.value !== meta.code) {
+      langSelect.value = meta.code;
+    }
+
+    const brandTitle = document.getElementById('portal-brand-title');
+    if (brandTitle && t.brandTitle) brandTitle.textContent = t.brandTitle;
+
+    const brandSub = document.getElementById('portal-brand-subtitle');
+    if (brandSub && t.brandSubtitle) brandSub.textContent = t.brandSubtitle;
+
+    const voiceLabel = document.getElementById('narrator-voice-label');
+    if (voiceLabel && t.voiceLabel) voiceLabel.textContent = t.voiceLabel;
+
+    const soundBtn = document.getElementById('sound-toggle-btn');
+    if (soundBtn) {
+      soundBtn.textContent = state.soundEnabled
+        ? (t.soundOn || '🔊 Sound FX: ON')
+        : (t.soundOff || '🔇 Sound FX: OFF');
+    }
+
+    const spoilerLabel = document.getElementById('spoiler-shield-label');
+    if (spoilerLabel && t.spoilerLabel) spoilerLabel.textContent = t.spoilerLabel;
+
+    const optWano = document.getElementById('spoiler-opt-wano');
+    if (optWano && t.spoilerWano) optWano.textContent = t.spoilerWano;
+    const optEast = document.getElementById('spoiler-opt-east');
+    if (optEast && t.spoilerEastBlue) optEast.textContent = t.spoilerEastBlue;
+
+    const tabMap = {
+      globe: t.tabWorld,
+      maps: t.tabMaps,
+      timeline: t.tabTimeline,
+      characters: t.tabCharacters,
+      crew: t.tabCrew,
+      'devil-fruits': t.tabFruits,
+      lore: t.tabLore
+    };
+    document.querySelectorAll('[data-tab-btn]').forEach((btn) => {
+      const key = btn.getAttribute('data-tab-btn');
+      if (tabMap[key]) btn.textContent = tabMap[key];
+    });
+
+    const btnZoomIn = document.getElementById('hud-zoom-in');
+    if (btnZoomIn && t.zoomIn) btnZoomIn.textContent = t.zoomIn;
+    const btnZoomOut = document.getElementById('hud-zoom-out');
+    if (btnZoomOut && t.zoomOut) btnZoomOut.textContent = t.zoomOut;
+    const btnReset = document.getElementById('hud-reset');
+    if (btnReset && t.resetView) btnReset.textContent = t.resetView;
+    const btnSpin = document.getElementById('hud-toggle-spin');
+    if (btnSpin && engine3D) {
+      btnSpin.textContent = engine3D.autoRotate
+        ? (t.pauseSpin || '⏸ Pause Spin')
+        : (t.autoSpin || '▶ Auto Spin');
+    }
+    const btnTiltX = document.getElementById('hud-tilt-x');
+    if (btnTiltX && engine3D) {
+      btnTiltX.textContent = engine3D.useCanonicalTilt
+        ? (t.tilt45 || '🧭 45° X-Tilt')
+        : (t.tiltFlat || '🧭 Flat Tilt');
+    }
+
+    const cookieTitle = document.getElementById('cookie-banner-title');
+    if (cookieTitle && t.cookieTitle) cookieTitle.textContent = t.cookieTitle;
+    const cookieText = document.getElementById('cookie-banner-text');
+    if (cookieText && t.cookieText) cookieText.textContent = t.cookieText;
+    const cookieAccept = document.getElementById('btn-cookie-accept');
+    if (cookieAccept && t.cookieAccept) cookieAccept.textContent = t.cookieAccept;
+    const cookieDecline = document.getElementById('btn-cookie-decline');
+    if (cookieDecline && t.cookieDecline) cookieDecline.textContent = t.cookieDecline;
+
+    applyThemeMode(state.theme);
+    populateVoiceOptions();
+    syncReadAloudButtonsUI(soundFX.isSpeaking);
+  }
+
+  function enhanceInspectorWithI18nAndReadAloud(container) {
+    if (!container || !I18N) return;
+    const t = I18N.getStrings(state.lang);
+
+    // Localize common section subheads inside the rendered inspector
+    container.querySelectorAll('.section-subhead').forEach((sub) => {
+      const txt = sub.textContent || '';
+      if (txt.includes('Explorer Notes for Kids')) sub.textContent = t.explorerNotes;
+      else if (txt.includes('Bounty Evolution')) sub.textContent = t.bountyEvolution;
+      else if (txt.includes('Devil Fruit / Fighting Style')) sub.textContent = t.devilFruitStyle;
+      else if (txt.includes('Haki Mastery')) sub.textContent = t.hakiMastery;
+      else if (txt.includes('Signature Techniques')) sub.textContent = t.signatureMoves;
+      else if (txt.includes('6-Axis Power Radar')) sub.textContent = t.powerRadarTitle;
+      else if (txt.includes('1v1 Grand Line Clash Simulator')) sub.textContent = t.clashSimulatorTitle;
+      else if (txt.includes('Natural Weakness')) sub.textContent = t.naturalWeakness;
+      else if (txt.includes('Test Haki in the 3D Viewport')) sub.textContent = t.testHakiViewport;
+    });
+
+    // Attach a Read Aloud button to every feature card & wanted poster card
+    const cards = container.querySelectorAll('.feature-card, .wanted-poster-card');
+    let firstNarration = '';
+
+    cards.forEach((card) => {
+      const titleEl = card.querySelector('.card-title, .wanted-char-name');
+      const subEl = card.querySelector('.card-subtitle, .wanted-epithet');
+      const bodyEls = card.querySelectorAll('.card-body-text');
+      const factEls = card.querySelectorAll('.fact-item, .lore-step-block');
+
+      const title = titleEl ? titleEl.textContent.trim() : '';
+      const subtitle = subEl ? subEl.textContent.trim() : '';
+      const summary = Array.from(bodyEls)
+        .map((n) => n.textContent.trim())
+        .filter(Boolean)
+        .join(' ');
+      const notes = Array.from(factEls)
+        .map((n) => n.textContent.trim())
+        .filter(Boolean);
+
+      const narration = I18N.buildCardNarrationText(state.lang, {
+        title: title,
+        subtitle: subtitle,
+        summary: summary,
+        notes: notes
+      });
+
+      if (!firstNarration && (title || summary)) {
+        firstNarration = narration;
+      }
+
+      const kickerRow = card.querySelector('.card-kicker-row');
+      if (kickerRow && !kickerRow.querySelector('.card-read-aloud-btn')) {
+        const readBtn = el('button', {
+          type: 'button',
+          className: 'card-read-aloud-btn' + (soundFX.isSpeaking ? ' speaking' : ''),
+          text: soundFX.isSpeaking ? (t.stopReading || '⏹ Stop Reading') : (t.readAloud || '🗣️ Read Aloud'),
+          ariaPressed: soundFX.isSpeaking ? 'true' : 'false',
+          onClick: () => {
+            soundFX.speakText(narration, state.lang);
+            if (ANALYTICS) {
+              ANALYTICS.trackEvent('read_aloud', { tab: state.activeTab, lang: state.lang, title: title });
+            }
+          }
+        });
+        kickerRow.appendChild(readBtn);
+      }
+    });
+
+    if (firstNarration) {
+      state.activeNarrationText = firstNarration;
+    }
+  }
 
   function persistState() {
     savePortalProgress({
@@ -199,9 +437,13 @@
 
   function switchTab(tabId, silentSound) {
     stopAutoSail();
+    soundFX.stopSpeech();
     state.activeTab = tabId;
     if (!silentSound) {
       soundFX.playDenDenMushi();
+    }
+    if (ANALYTICS) {
+      ANALYTICS.trackEvent('switch_tab', { tab: tabId, lang: state.lang });
     }
 
     const navButtons = document.querySelectorAll('[data-tab-btn]');
@@ -436,6 +678,8 @@
     } else if (state.activeTab === 'lore') {
       renderLoreAndQuizInspector(container);
     }
+
+    enhanceInspectorWithI18nAndReadAloud(container);
 
     if (prevInputId) {
       const restored = document.getElementById(prevInputId);
@@ -1764,11 +2008,91 @@
     updatePoneglyphHeaderUI();
     syncViewportMapButtons();
 
+    if (ANALYTICS) {
+      ANALYTICS.initCookieConsent();
+    }
+
+    soundFX.onSpeechStateChange((speaking) => {
+      syncReadAloudButtonsUI(speaking);
+    });
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.onvoiceschanged = () => {
+          populateVoiceOptions();
+        };
+      } catch (_e) {
+        // Ignore onvoiceschanged assignment error
+      }
+    }
+
+    // 11-Language Selector
+    const langSelect = document.getElementById('lang-select');
+    if (langSelect && I18N) {
+      langSelect.value = state.lang;
+      langSelect.addEventListener('change', (e) => {
+        soundFX.stopSpeech();
+        state.lang = I18N.saveLanguage(e.target.value);
+        applyLanguageUI();
+        renderActivePanel();
+        if (ANALYTICS) {
+          ANALYTICS.trackEvent('switch_language', { lang: state.lang });
+        }
+      });
+    }
+
+    // Topbar Read Aloud Button
+    const readAloudMainBtn = document.getElementById('btn-read-aloud-main');
+    if (readAloudMainBtn) {
+      readAloudMainBtn.addEventListener('click', () => {
+        const textToRead =
+          state.activeNarrationText ||
+          (I18N
+            ? I18N.buildCardNarrationText(state.lang, {
+                title: getStrings().brandTitle,
+                summary: getStrings().brandSubtitle
+              })
+            : 'Welcome to the One Piece 3D Grand Line Portal.');
+        soundFX.speakText(textToRead, state.lang);
+        if (ANALYTICS) {
+          ANALYTICS.trackEvent('read_aloud', { tab: state.activeTab, lang: state.lang, source: 'header' });
+        }
+      });
+    }
+
+    // Narrator Voice Selector
+    const voiceSelect = document.getElementById('narrator-voice-select');
+    if (voiceSelect) {
+      voiceSelect.addEventListener('change', (e) => {
+        soundFX.setPreferredVoiceURI(e.target.value || '');
+        if (soundFX.isSpeaking && state.activeNarrationText) {
+          soundFX.stopSpeech();
+          soundFX.speakText(state.activeNarrationText, state.lang);
+        }
+      });
+    }
+
+    // Dark / Light Theme Mode Toggle Button
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
+        applyThemeMode(nextTheme);
+        soundFX.playLogPoseChime();
+        if (ANALYTICS) {
+          ANALYTICS.trackEvent('toggle_theme', { theme: nextTheme });
+        }
+      });
+    }
+
     // Sound Toggle Button
     const soundBtn = document.getElementById('sound-toggle-btn');
     const syncSoundBtn = () => {
       if (!soundBtn) return;
-      soundBtn.textContent = state.soundEnabled ? '🔊 Sound FX: ON' : '🔇 Sound FX: OFF';
+      const t = getStrings();
+      soundBtn.textContent = state.soundEnabled
+        ? (t.soundOn || '🔊 Sound FX: ON')
+        : (t.soundOff || '🔇 Sound FX: OFF');
       soundBtn.setAttribute('aria-pressed', state.soundEnabled ? 'true' : 'false');
     };
     syncSoundBtn();
@@ -1780,6 +2104,8 @@
         persistState();
       });
     }
+
+    applyLanguageUI();
 
     // Road Poneglyph Quest Header Pill
     const questBtn = document.getElementById('poneglyph-status-btn');

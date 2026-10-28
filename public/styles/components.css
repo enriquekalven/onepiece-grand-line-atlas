@@ -1142,3 +1142,24 @@
   border-color: var(--accent-crimson);
   color: #fca5a5;
 }
+
+/* Light Mode Contrast Refinements for Badges & Quiz States */
+html[data-theme="light"] .badge-pill.danger,
+html[data-theme="light"] .badge-pill.crimson,
+html[data-theme="light"] .tier-pill,
+html[data-theme="light"] .haki-badge.advanced,
+html[data-theme="light"] .bounty-total-pill.over-cap,
+html[data-theme="light"] .quiz-opt-btn.wrong {
+  color: #991b1b;
+}
+
+html[data-theme="light"] .crew-tag,
+html[data-theme="light"] .quiz-opt-btn.correct {
+  color: #14532d;
+}
+
+html[data-theme="light"] .action-btn.primary,
+html[data-theme="light"] .chip-btn.active {
+  color: #ffffff;
+}
+

@@ -192,6 +192,8 @@ test('Static Zero-Dependency Server enforces security headers, ETag 304 caching,
 
 test('Zero unsafe DOM sinks or blocking dialogs in public/js modules', () => {
   const jsFiles = [
+    'public/js/i18n.js',
+    'public/js/analytics.js',
     'public/js/data/maps-and-world.js',
     'public/js/data/characters.js',
     'public/js/data/fruits-and-lore.js',
@@ -230,3 +232,63 @@ test('Zero unsafe DOM sinks or blocking dialogs in public/js modules', () => {
     }
   }
 });
+
+test('11-Language i18n, Read Aloud TTS codes, Dark/Light Theme, and Opt-In GA4 configuration', () => {
+  const i18n = require('../public/js/i18n.js');
+  const analytics = require('../public/js/analytics.js');
+  const { OnePieceSoundFX, LANG_SPEECH_CODES } = require('../public/js/sound.js');
+
+  const expectedLangs = ['en', 'es', 'zh', 'yue', 'ja', 'ko', 'pt', 'fr', 'it', 'de', 'ar'];
+  assert.deepEqual(
+    i18n.SUPPORTED_LANGUAGES.map((l) => l.code),
+    expectedLangs,
+    'Expected exact 11-language matrix matching Atlas of Wonder'
+  );
+
+  for (const code of expectedLangs) {
+    const strings = i18n.getStrings(code);
+    assert.ok(strings.brandTitle, `Missing brandTitle for ${code}`);
+    assert.ok(strings.readAloud, `Missing readAloud for ${code}`);
+    assert.ok(strings.stopReading, `Missing stopReading for ${code}`);
+    assert.ok(strings.themeDark, `Missing themeDark for ${code}`);
+    assert.ok(strings.themeLight, `Missing themeLight for ${code}`);
+    assert.ok(strings.cookieAccept, `Missing cookieAccept for ${code}`);
+    assert.ok(LANG_SPEECH_CODES[code], `Missing BCP-47 speech code for ${code}`);
+  }
+
+  assert.equal(i18n.getLanguageMeta('ar').dir, 'rtl');
+  assert.equal(i18n.getLanguageMeta('en').dir, 'ltr');
+  assert.equal(i18n.resolveLanguage('zh-HK'), 'yue');
+  assert.equal(i18n.resolveLanguage('zh-CN'), 'zh');
+  assert.equal(i18n.resolveLanguage('es-MX'), 'es');
+
+  const narration = i18n.buildCardNarrationText('ja', {
+    title: 'Monkey D. Luffy',
+    subtitle: 'Captain',
+    summary: 'Ate the Gum-Gum Fruit.',
+    notes: ['Loves meat!']
+  });
+  assert.ok(narration.includes('Monkey D. Luffy'));
+  assert.ok(narration.includes('Loves meat!'));
+
+  // Verify GA4 Measurement ID and Firebase Web App ID
+  assert.equal(analytics.GA_MEASUREMENT_ID, 'G-3XD1EEG3BC');
+  assert.equal(analytics.FIREBASE_APP_ID, '1:697625214430:web:4eb1c198ecde36fc82f14f');
+
+  // Verify SoundFX speech methods exist
+  const sfx = new OnePieceSoundFX(true);
+  assert.equal(typeof sfx.speakText, 'function');
+  assert.equal(typeof sfx.stopSpeech, 'function');
+  assert.equal(sfx.getSpeechBcp47('yue'), 'zh-HK');
+
+  // Verify Dark/Light theme CSS and HTML hooks exist
+  const indexHtml = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+  assert.ok(indexHtml.includes('id="theme-toggle-btn"'), 'Expected #theme-toggle-btn in index.html');
+  assert.ok(indexHtml.includes('id="lang-select"'), 'Expected #lang-select in index.html');
+  assert.ok(indexHtml.includes('id="btn-read-aloud-main"'), 'Expected #btn-read-aloud-main in index.html');
+  assert.ok(indexHtml.includes('id="cookie-banner"'), 'Expected #cookie-banner in index.html');
+
+  const baseCss = fs.readFileSync(path.join(PUBLIC_DIR, 'styles', 'base.css'), 'utf8');
+  assert.ok(baseCss.includes('html[data-theme="light"]'), 'Expected Light Theme CSS rules in base.css');
+});
+
