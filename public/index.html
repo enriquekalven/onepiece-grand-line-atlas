@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self';"
+  />
+  <title>Grand Line 3D — Interactive One Piece World, Manga Maps, Timeline, Crew Builder &amp; Characters</title>
+  <link rel="stylesheet" href="/styles/base.css" />
+  <link rel="stylesheet" href="/styles/components.css" />
+</head>
+<body>
+  <header class="portal-header">
+    <div class="brand-lockup">
+      <div class="strawhat-emblem" aria-hidden="true">🏴‍☠️</div>
+      <div>
+        <h1 class="portal-title">GRAND LINE 3D &amp; MANGA ATLAS</h1>
+        <p class="portal-tagline">Interactive 3D Planet, Canonical Manga Maps, Log Pose Timeline, 30+ Characters, Dream Crew &amp; Devil Fruits</p>
+      </div>
+    </div>
+
+    <div class="header-controls-cluster">
+      <button
+        type="button"
+        id="poneglyph-status-btn"
+        class="header-pill-btn poneglyph-pill"
+        aria-label="Open Road Poneglyph Treasure Hunt tracker"
+      >
+        🟥 Road Poneglyphs: 0/4
+      </button>
+
+      <button
+        type="button"
+        id="sound-toggle-btn"
+        class="header-pill-btn"
+        aria-pressed="true"
+        aria-label="Toggle anime sound effects"
+      >
+        🔊 Sound FX: ON
+      </button>
+
+      <div class="spoiler-shield-box">
+        <label for="spoiler-select" class="spoiler-label">🛡️ Spoiler Shield:</label>
+        <select id="spoiler-select" class="portal-select" aria-label="Select story spoiler level">
+          <option value="wano" selected>Up to Wano Country (Gear 5, Yonko &amp; Full Haki)</option>
+          <option value="pre-timeskip">Pre-Timeskip Only (East Blue → Marineford)</option>
+          <option value="east-blue">East Blue &amp; Reverse Mountain Only (Beginner Safe)</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <nav class="portal-nav" role="tablist" aria-label="One Piece Portal Explorer Modes">
+    <button type="button" class="nav-tab-btn active" data-tab-btn="globe" role="tab" aria-selected="true">
+      🌍 3D World &amp; Oceans
+    </button>
+    <button type="button" class="nav-tab-btn" data-tab-btn="maps" role="tab" aria-selected="false">
+      🗺️ Manga &amp; Anime Maps
+    </button>
+    <button type="button" class="nav-tab-btn" data-tab-btn="timeline" role="tab" aria-selected="false">
+      🧭 3D Log Pose Timeline
+    </button>
+    <button type="button" class="nav-tab-btn" data-tab-btn="characters" role="tab" aria-selected="false">
+      🏴‍☠️ Characters &amp; Power (30)
+    </button>
+    <button type="button" class="nav-tab-btn" data-tab-btn="crew" role="tab" aria-selected="false">
+      ⚓ Build Pirate Crew
+    </button>
+    <button type="button" class="nav-tab-btn" data-tab-btn="devil-fruits" role="tab" aria-selected="false">
+      🍇 3D Devil Fruits (18)
+    </button>
+    <button type="button" class="nav-tab-btn" data-tab-btn="lore" role="tab" aria-selected="false">
+      📜 Lore, Haki &amp; Quiz
+    </button>
+  </nav>
+
+  <main class="portal-main">
+    <!-- Left / Top: Interactive 3D & Manga Map Viewport -->
+    <section class="viewport-section" aria-label="Interactive 3D One Piece and Manga Map Viewport">
+      <div class="viewport-top-overlay">
+        <span id="viewport-mode-badge" class="viewport-badge">🌍 3D ONE PIECE PLANET GLOBE</span>
+        <span id="viewport-hint-text" class="viewport-hint">
+          Drag to spin • Pinch/scroll to zoom • Toggle 🧭 45° X-Tilt below to match Crocus's map!
+        </span>
+      </div>
+
+      <!-- Quick Switcher between 3D Globe and the 4 Canonical Manga/Anime Maps -->
+      <div class="viewport-map-switcher" role="toolbar" aria-label="Switch between 3D Globe and Canonical Manga Maps">
+        <button type="button" class="map-switch-btn active" data-view-switch="3d-globe">
+          🌍 3D Planet Globe
+        </button>
+        <button type="button" class="map-switch-btn" data-view-switch="grandline-sea-chart">
+          🗺️ Grand Line &amp; Road Poneglyph Map
+        </button>
+        <button type="button" class="map-switch-btn" data-view-switch="reverse-mountain-x-map">
+          ⛰️ Reverse Mountain X-Map
+        </button>
+        <button type="button" class="map-switch-btn" data-view-switch="vertical-cross-section-map">
+          ☁️ Sky (+10km) &amp; Fish-Man (-10km) Map
+        </button>
+        <button type="button" class="map-switch-btn" data-view-switch="wano-onigashima-woodblock-map">
+          🐉 Wano &amp; Onigashima Map
+        </button>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas
+          id="globe-canvas"
+          tabindex="0"
+          aria-label="Interactive 3D One Piece Globe, Manga Maps, and Devil Fruit Viewport."
+        ></canvas>
+      </div>
+
+      <div class="viewport-hud-bar" role="toolbar" aria-label="Viewport Camera Controls">
+        <button type="button" id="hud-zoom-in" class="hud-btn" aria-label="Zoom in view">➕ Zoom In</button>
+        <button type="button" id="hud-zoom-out" class="hud-btn" aria-label="Zoom out view">➖ Zoom Out</button>
+        <button type="button" id="hud-tilt-x" class="hud-btn active-hud" aria-label="Toggle Canonical 45-degree Manga X-Axis Tilt">
+          🧭 45° X-Tilt: ON
+        </button>
+        <button type="button" id="hud-toggle-spin" class="hud-btn" aria-label="Toggle auto rotation">⏸ Pause Spin</button>
+        <button type="button" id="hud-reset" class="hud-btn" aria-label="Reset camera view">🔄 Reset View</button>
+      </div>
+    </section>
+
+    <!-- Right / Bottom: Interactive Lore, Maps, Timeline, Wanted Posters, Crew Builder & Quiz -->
+    <aside class="inspector-section" aria-label="Interactive Lore and Character Inspector">
+      <div id="inspector-content" class="inspector-scroll"></div>
+    </aside>
+  </main>
+
+  <script src="/js/data/maps-and-world.js"></script>
+  <script src="/js/data/characters.js"></script>
+  <script src="/js/data/fruits-and-lore.js"></script>
+  <script src="/js/data/index.js"></script>
+  <script src="/js/sound.js"></script>
+  <script src="/js/engine/islands3d.js"></script>
+  <script src="/js/engine/globe3d.js"></script>
+  <script src="/js/ui/dom.js"></script>
+  <script src="/js/ui/crew-builder.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
