@@ -1163,3 +1163,90 @@ html[data-theme="light"] .chip-btn.active {
   color: #ffffff;
 }
 
+/* Akuma no Mi Zukan (Devil Fruit Encyclopedia) Showcase */
+.zukan-plate-img {
+  max-height: 225px;
+  object-fit: cover;
+}
+
+.fruit-pill-avatar {
+  background-color: #f3e5c8;
+  border-color: var(--accent-gold);
+}
+
+.zukan-fruit-showcase {
+  display: grid;
+  grid-template-columns: 168px 1fr;
+  gap: 1rem;
+  align-items: center;
+  background-color: var(--bg-abyss);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+}
+
+@media (max-width: 600px) {
+  .zukan-fruit-showcase {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+
+.zukan-fruit-art-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  background: linear-gradient(180deg, #f6e7c8 0%, #ead3a8 100%);
+  border: 2px solid #b45309;
+  border-radius: var(--radius-sm);
+  padding: 0.4rem;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.32);
+  width: 100%;
+  max-width: 168px;
+}
+
+.zukan-fruit-art-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(120, 53, 15, 0.35);
+}
+
+.zukan-fruit-art-caption {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #78350f;
+  text-align: center;
+}
+
+.zukan-fruit-meta-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.zukan-shape-callout {
+  background-color: var(--bg-elevated);
+  border-left: 3px solid var(--accent-gold);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.zukan-shape-callout strong {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--accent-gold);
+  margin-bottom: 0.15rem;
+}
+
+.zukan-shape-callout p {
+  color: var(--text-primary);
+  margin: 0;
+}

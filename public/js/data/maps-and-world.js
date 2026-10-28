@@ -541,7 +541,7 @@
       summary:
         'Built straight down onto the Calm Belt ocean floor! A giant triangular whirlpool called the Tarai Current connects Enies Lobby, Impel Down, and Marineford behind towering Gates of Justice. With Boa Hancock\'s help, Luffy snuck inside and teamed up with Buggy, Crocodile, and Jinbe!',
       keyFacts: [
-        'Six Wild Levels: Crimson Hell, Wildote Beast Hell, Starvation Desert, Blazing Hell, Freezing Hell, and Eternal Level 6!',
+        'Six Wild Levels: Crimson Hell, Wild Beast Hell, Starvation Desert, Blazing Hell, Freezing Hell, and Eternal Level 6!',
         'Unlikely Escape Team: Luffy, Buggy the Clown, Jinbe, Sir Crocodile, Ivankov, and Mr. 3 led the biggest breakout in history — riding whale sharks out into the sea!'
       ]
     },

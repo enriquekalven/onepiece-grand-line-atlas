@@ -118,6 +118,8 @@
 
       this.charImages = {};
       this.mapImages = {};
+      this.fruitSprites = {};
+      this.fruitCards = {};
       this.preloadAssets();
 
       this.stars = [];
@@ -170,6 +172,18 @@
         const img = new Image();
         img.src = m.imageUrl;
         this.mapImages[m.id] = img;
+      });
+      (data.devilFruits || []).forEach((df) => {
+        if (df.sprite) {
+          const sp = new Image();
+          sp.src = df.sprite;
+          this.fruitSprites[df.id] = sp;
+        }
+        if (df.image) {
+          const card = new Image();
+          card.src = df.image;
+          this.fruitCards[df.id] = card;
+        }
       });
     }
 
@@ -1217,177 +1231,299 @@
       const rawFruit = this.activeFruit || window.ONE_PIECE_DATA.devilFruits[0];
       const fruit = window.OP_HELPERS.getDevilFruitForEra(rawFruit, this.eraFilter);
       const cx = w * 0.5;
-      const cy = h * 0.53;
-      const baseR = Math.min(w, h) * 0.24 * this.zoom;
+      const cy = h * 0.51;
+      const baseR = Math.min(w, h) * 0.255 * this.zoom;
+      const bobY = Math.sin(this.elapsed * 2.2) * (baseR * 0.055);
+      const burstMultiplier = this.powerBurstTimer > 0 ? 1.95 : 1.0;
 
+      // 1. Pedestal Drop Shadow & Concentric Golden Akuma no Mi Zukan Astrolabe Rings
+      const floorY = cy + baseR * 1.24;
+      const shadowScale = 1 - (bobY / (baseR * 0.45)) * 0.2;
       ctx.save();
+      ctx.fillStyle = 'rgba(2, 6, 23, 0.62)';
+      ctx.beginPath();
+      ctx.ellipse(cx, floorY, baseR * 0.66 * shadowScale, baseR * 0.17 * shadowScale, 0, 0, Math.PI * 2);
+      ctx.fill();
+
       for (let r = 1; r <= 3; r++) {
-        ctx.strokeStyle = fruit.auraColor;
-        ctx.globalAlpha = 0.18 + (r === 1 ? 0.2 : 0);
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = r === 2 ? '#facc15' : fruit.auraColor;
+        ctx.globalAlpha = 0.22 + (r === 1 ? 0.24 : 0);
+        ctx.lineWidth = r === 1 ? 2.4 : 1.5;
+        if (r === 2) ctx.setLineDash([7, 7]);
+        else ctx.setLineDash([]);
         ctx.beginPath();
         ctx.ellipse(
           cx,
-          cy + baseR * 1.25,
-          baseR * (0.7 + r * 0.28 + Math.sin(this.elapsed * 3 + r) * 0.04),
-          baseR * (0.2 + r * 0.07),
+          floorY,
+          baseR * (0.64 + r * 0.27 + Math.sin(this.elapsed * 2.6 + r) * 0.03),
+          baseR * (0.17 + r * 0.068),
           0,
           0,
           Math.PI * 2
         );
         ctx.stroke();
       }
+      ctx.setLineDash([]);
       ctx.restore();
 
+      // 2. Multi-Stop Elemental Aura Glow Behind Canonical Fruit
       const auraGrad = ctx.createRadialGradient(
         cx,
-        cy,
-        baseR * 0.2,
+        cy + bobY,
+        baseR * 0.14,
         cx,
-        cy,
-        baseR * (this.powerBurstTimer > 0 ? 2.1 : 1.55)
+        cy + bobY,
+        baseR * (this.powerBurstTimer > 0 ? 2.15 : 1.58)
       );
-      auraGrad.addColorStop(0, fruit.primaryColor);
-      auraGrad.addColorStop(0.5, fruit.auraColor + '55');
+      auraGrad.addColorStop(0, fruit.secondaryColor + 'cc');
+      auraGrad.addColorStop(0.38, fruit.primaryColor + '88');
+      auraGrad.addColorStop(0.72, fruit.auraColor + '33');
       auraGrad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = auraGrad;
       ctx.beginPath();
-      ctx.arc(cx, cy, baseR * 2.1, 0, Math.PI * 2);
+      ctx.arc(cx, cy + bobY, baseR * 2.15, 0, Math.PI * 2);
       ctx.fill();
 
-      // Rotate pre-cached geometry in-place (zero object allocations!)
-      const nodes = this.cachedFruitGeometry;
-      const isFlame = fruit.shapeType === 'flame';
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        const scale = isFlame ? 1 + 0.08 * Math.sin(node.v * 9 + this.elapsed * 4) : 1;
-        node.rotPt = rotatePoint(
+      // Precompute 3D orbital particles & back/front split for true 3D occlusion
+      const projectedParticles = [];
+      for (let i = 0; i < this.particles.length; i++) {
+        const p = this.particles[i];
+        const ang = p.angle + this.elapsed * p.speed * burstMultiplier;
+        const rad = baseR * p.dist * (this.powerBurstTimer > 0 ? 1.24 : 0.96);
+        const pt3 = rotatePoint(
           {
-            x: node.basePt.x * scale,
-            y: node.basePt.y,
-            z: node.basePt.z * scale
+            x: Math.cos(ang) * Math.cos(p.elev),
+            y: Math.sin(p.elev) + Math.sin(this.elapsed * 2 + p.offset) * 0.14,
+            z: Math.sin(ang) * Math.cos(p.elev)
           },
-          this.yaw,
-          this.pitch,
+          this.yaw * 0.55,
+          this.pitch * 0.55,
           0
         );
+        projectedParticles.push({ p, pt3, rad, idx: i });
       }
-      nodes.sort((a, b) => a.rotPt.z - b.rotPt.z);
 
-      const bodyGrad = ctx.createRadialGradient(
-        cx - baseR * 0.3,
-        cy - baseR * 0.3,
-        baseR * 0.1,
-        cx,
-        cy,
-        baseR * 1.05
-      );
-      bodyGrad.addColorStop(0, fruit.secondaryColor);
-      bodyGrad.addColorStop(0.55, fruit.primaryColor);
-      bodyGrad.addColorStop(1, '#090d16');
-      ctx.fillStyle = bodyGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseR * 0.96, 0, Math.PI * 2);
-      ctx.fill();
+      const drawParticleLayer = (frontPass) => {
+        for (let i = 0; i < projectedParticles.length; i++) {
+          const item = projectedParticles[i];
+          if (frontPass ? item.pt3.z < 0 : item.pt3.z >= 0) continue;
+          const px = cx + item.pt3.x * item.rad;
+          const py = cy + bobY - item.pt3.y * item.rad;
+          const rSize = item.p.size * (this.powerBurstTimer > 0 ? 1.48 : 0.92);
 
-      for (let i = 0; i < nodes.length; i++) {
-        const n = nodes[i];
-        if (n.rotPt.z < -0.15) continue;
-        const sx = cx + n.rotPt.x * baseR;
-        const sy = cy - n.rotPt.y * baseR;
-        const depthScale = clamp((n.rotPt.z + 1) * 0.55, 0.3, 1.15);
+          ctx.fillStyle = item.idx % 2 === 0 ? fruit.auraColor : fruit.secondaryColor;
+          ctx.globalAlpha = clamp((item.pt3.z + 1.25) * 0.45, 0.14, 0.95);
+          ctx.beginPath();
+          ctx.arc(px, py, rSize, 0, Math.PI * 2);
+          ctx.fill();
 
-        ctx.fillStyle = n.rotPt.z > 0.25 ? fruit.primaryColor : '#1e293b';
+          // Canonical Karakusa mini-spiral runes on select orbital motes
+          if (item.idx % 9 === 0 && rSize > 2.6) {
+            ctx.save();
+            ctx.translate(px, py);
+            ctx.rotate(this.elapsed * 1.8 + item.idx);
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            for (let a = 0; a < Math.PI * 2.8; a += 0.45) {
+              const sr = (a / (Math.PI * 2.8)) * (rSize * 2.1);
+              if (a === 0) ctx.moveTo(Math.cos(a) * sr, Math.sin(a) * sr);
+              else ctx.lineTo(Math.cos(a) * sr, Math.sin(a) * sr);
+            }
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+        ctx.globalAlpha = 1;
+      };
+
+      // Helper to draw 3D tilted elemental halo ring (back half z < 0, front half z >= 0)
+      const drawOrbitalHaloArc = (frontPass) => {
+        ctx.save();
+        ctx.strokeStyle = fruit.auraColor;
+        ctx.globalAlpha = this.powerBurstTimer > 0 ? 0.85 : 0.45;
+        ctx.lineWidth = this.powerBurstTimer > 0 ? 3.2 : 2.0;
         ctx.beginPath();
-        ctx.arc(sx, sy, 9 * depthScale, 0, Math.PI * 2);
+        let started = false;
+        for (let deg = 0; deg <= 360; deg += 5) {
+          const radAng = (deg * Math.PI) / 180 + this.elapsed * 0.9;
+          const ringPt = rotatePoint(
+            { x: Math.cos(radAng) * 1.18, y: Math.sin(radAng * 2) * 0.08, z: Math.sin(radAng) * 1.18 },
+            this.yaw * 0.65,
+            this.pitch * 0.65 + 0.35,
+            0.22
+          );
+          const visible = frontPass ? ringPt.z >= 0 : ringPt.z < 0;
+          if (visible) {
+            const sx = cx + ringPt.x * baseR;
+            const sy = cy + bobY - ringPt.y * baseR;
+            if (!started) {
+              ctx.moveTo(sx, sy);
+              started = true;
+            } else {
+              ctx.lineTo(sx, sy);
+            }
+          } else {
+            started = false;
+          }
+        }
+        ctx.stroke();
+        ctx.restore();
+      };
+
+      // 3. Back Pass (Behind Devil Fruit)
+      drawOrbitalHaloArc(false);
+      drawParticleLayer(false);
+
+      // 4. Centerpiece: Canonical Akuma no Mi Zukan Cutout Sprite with 3D Interactive Tilt!
+      const spriteImg = this.fruitSprites[fruit.id] || this.fruitCards[fruit.id];
+      const spriteSize = baseR * 2.28;
+      // Interactive 3D sway & foreshortening driven by drag/auto-rotate yaw & pitch
+      const swayX = Math.sin(this.yaw) * 0.26;
+      const swayY = clamp(this.pitch, -0.65, 0.65) * 0.22;
+      const scaleX = 1 - Math.abs(swayX) * 0.16;
+      const scaleY = 1 - Math.abs(swayY) * 0.12;
+      const skewY = swayX * 0.14;
+      const skewX = -swayY * 0.1;
+
+      if (spriteImg && spriteImg.complete && spriteImg.naturalWidth > 0) {
+        // Multi-slice 3D rim extrusion behind sprite for tangible volumetric thickness
+        ctx.save();
+        ctx.translate(cx + swayX * baseR * 0.22, cy + bobY + swayY * baseR * 0.18);
+        ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
+
+        // Glowing rim backlight
+        ctx.save();
+        ctx.shadowColor = this.powerBurstTimer > 0 ? '#fde047' : fruit.auraColor;
+        ctx.shadowBlur = this.powerBurstTimer > 0 ? 38 : 22;
+        for (let depthLayer = 3; depthLayer >= 1; depthLayer--) {
+          const offX = -swayX * depthLayer * 4.2;
+          const offY = -swayY * depthLayer * 3.6 + depthLayer * 1.2;
+          ctx.globalAlpha = 0.22;
+          ctx.drawImage(
+            spriteImg,
+            -spriteSize * 0.5 + offX,
+            -spriteSize * 0.5 + offY,
+            spriteSize,
+            spriteSize
+          );
+        }
+        ctx.globalAlpha = 1;
+        ctx.drawImage(spriteImg, -spriteSize * 0.5, -spriteSize * 0.5, spriteSize, spriteSize);
+        ctx.restore();
+
+        // Subtle dynamic specular sheen sweeping across the fruit as you rotate it
+        const sheenX = -swayX * spriteSize * 0.28;
+        const sheenY = -spriteSize * 0.18 + swayY * spriteSize * 0.2;
+        const sheenGrad = ctx.createRadialGradient(
+          sheenX,
+          sheenY,
+          spriteSize * 0.02,
+          sheenX,
+          sheenY,
+          spriteSize * 0.34
+        );
+        sheenGrad.addColorStop(0, 'rgba(255, 255, 255, 0.22)');
+        sheenGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = sheenGrad;
+        ctx.beginPath();
+        ctx.arc(sheenX, sheenY, spriteSize * 0.34, 0, Math.PI * 2);
         ctx.fill();
 
-        if (n.hasSwirl && n.rotPt.z > 0.08) {
-          ctx.save();
-          ctx.translate(sx, sy);
-          ctx.rotate(this.yaw * 0.5);
-          ctx.strokeStyle = fruit.secondaryColor;
-          ctx.lineWidth = 1.9 * depthScale;
-          ctx.beginPath();
-          for (let a = 0; a < Math.PI * 3.2; a += 0.35) {
-            const sr = (a / (Math.PI * 3.2)) * 9 * depthScale;
-            const px = Math.cos(a) * sr;
-            const py = Math.sin(a) * sr;
-            if (a === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
-          }
-          ctx.stroke();
-          ctx.restore();
-        }
+        ctx.restore();
+      } else {
+        // Instant fallback silhouette while high-res Zukan PNG finishes decoding
+        const bodyGrad = ctx.createRadialGradient(
+          cx - baseR * 0.28,
+          cy + bobY - baseR * 0.28,
+          baseR * 0.1,
+          cx,
+          cy + bobY,
+          baseR * 0.95
+        );
+        bodyGrad.addColorStop(0, fruit.secondaryColor);
+        bodyGrad.addColorStop(0.65, fruit.primaryColor);
+        bodyGrad.addColorStop(1, '#090d16');
+        ctx.fillStyle = bodyGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy + bobY, baseR * 0.88, 0, Math.PI * 2);
+        ctx.fill();
       }
 
-      const topPole = rotatePoint({ x: 0, y: 1.05, z: 0 }, this.yaw, this.pitch, 0);
-      const stemX = cx + topPole.x * baseR;
-      const stemY = cy - topPole.y * baseR;
-      ctx.save();
-      ctx.strokeStyle = '#4ade80';
-      ctx.lineWidth = 5;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(stemX, stemY);
-      ctx.bezierCurveTo(stemX + 12, stemY - 28, stemX + 38, stemY - 26, stemX + 24, stemY - 8);
-      ctx.stroke();
-      ctx.restore();
+      // 5. Front Pass (In Front of Devil Fruit)
+      drawOrbitalHaloArc(true);
+      drawParticleLayer(true);
 
+      // 6. Top-Left Wielder Portrait & Category Medallion
       const userImgKey =
         fruit.id === 'gomu-nika' && this.eraFilter === 'wano' ? 'luffy-alt' : fruit.characterId;
       const userImg = this.charImages[userImgKey] || this.charImages[fruit.characterId];
       if (userImg && userImg.complete && userImg.naturalWidth > 0) {
         ctx.save();
+        ctx.fillStyle = 'rgba(9, 13, 24, 0.78)';
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.45)';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(54, 62, 34, 0, Math.PI * 2);
+        if (typeof ctx.roundRect === 'function') {
+          ctx.roundRect(14, 22, Math.min(w - 28, 285), 76, 38);
+        } else {
+          ctx.rect(14, 22, Math.min(w - 28, 285), 76);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(52, 60, 31, 0, Math.PI * 2);
         ctx.clip();
-        ctx.drawImage(userImg, 20, 28, 68, 68);
+        ctx.drawImage(userImg, 21, 29, 62, 62);
         ctx.restore();
 
         ctx.strokeStyle = fruit.auraColor;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.8;
         ctx.beginPath();
-        ctx.arc(54, 62, 34, 0, Math.PI * 2);
+        ctx.arc(52, 60, 31, 0, Math.PI * 2);
         ctx.stroke();
 
         ctx.fillStyle = '#f8fafc';
-        ctx.font = '700 11px system-ui, sans-serif';
+        ctx.font = '700 11.5px system-ui, sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText(fruit.user, 98, 58);
-        ctx.fillStyle = fruit.auraColor;
-        ctx.font = '600 10px system-ui, sans-serif';
-        ctx.fillText(fruit.category, 98, 74);
+        ctx.fillText(fruit.user, 94, 54);
+        ctx.fillStyle = '#fde047';
+        ctx.font = '600 10.5px system-ui, sans-serif';
+        ctx.fillText(fruit.category, 94, 71);
+        ctx.restore();
       }
 
-      const burstMultiplier = this.powerBurstTimer > 0 ? 1.85 : 1.0;
-      for (let i = 0; i < this.particles.length; i++) {
-        const p = this.particles[i];
-        const ang = p.angle + this.elapsed * p.speed * burstMultiplier;
-        const rad = baseR * p.dist * (this.powerBurstTimer > 0 ? 1.25 : 1.0);
-        const pt3 = rotatePoint(
-          {
-            x: Math.cos(ang) * Math.cos(p.elev),
-            y: Math.sin(p.elev) + Math.sin(this.elapsed * 2 + p.offset) * 0.15,
-            z: Math.sin(ang) * Math.cos(p.elev)
-          },
-          this.yaw * 0.4,
-          this.pitch * 0.4,
-          0
-        );
-        const px = cx + pt3.x * rad;
-        const py = cy - pt3.y * rad;
-
-        ctx.fillStyle = i % 2 === 0 ? fruit.auraColor : fruit.secondaryColor;
-        ctx.globalAlpha = clamp((pt3.z + 1.2) * 0.45, 0.15, 0.95);
-        ctx.beginPath();
-        ctx.arc(px, py, p.size * (this.powerBurstTimer > 0 ? 1.45 : 0.9), 0, Math.PI * 2);
-        ctx.fill();
+      // 7. Bottom Canonical Akuma no Mi Zukan Nameplate
+      ctx.save();
+      const plateW = Math.min(w - 32, 430);
+      const plateX = cx - plateW * 0.5;
+      const plateY = h - 54;
+      ctx.fillStyle = 'rgba(9, 13, 24, 0.82)';
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.55)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(plateX, plateY, plateW, 40, 12);
+      } else {
+        ctx.rect(plateX, plateY, plateW, 40);
       }
-      ctx.globalAlpha = 1;
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#fde047';
+      ctx.font = '800 12px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('📖 AKUMA NO MI ZUKAN: ' + fruit.name.toUpperCase(), cx, plateY + 17);
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '600 10px system-ui, sans-serif';
+      const shortMorph = (fruit.zukanShape || fruit.englishName).slice(0, 66);
+      ctx.fillText(shortMorph, cx, plateY + 32);
+      ctx.restore();
 
       if (this.powerBurstTimer > 0) {
-        this.renderFruitSpecialEffect(ctx, cx, cy, baseR, fruit);
+        this.renderFruitSpecialEffect(ctx, cx, cy + bobY, baseR, fruit);
       }
     }
 
@@ -1396,50 +1532,64 @@
       const effect = fruit.effectType;
 
       if (effect === 'room') {
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
-        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.9)';
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(cx, cy, baseR * 1.55, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.12)';
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
         ctx.fill();
         ctx.font = '800 16px system-ui, sans-serif';
         ctx.fillStyle = '#38bdf8';
         ctx.textAlign = 'center';
-        ctx.fillText('⚡ ROOM — SHAMBLES! ⚡', cx, cy - baseR * 1.68);
+        ctx.fillText('⚡ ROOM — SHAMBLES! ⚡', cx, cy - baseR * 1.62);
       } else if (effect === 'quake') {
         ctx.strokeStyle = '#f8fafc';
         ctx.shadowColor = '#38bdf8';
-        ctx.shadowBlur = 12;
-        ctx.lineWidth = 3;
-        for (let k = 0; k < 7; k++) {
-          const ang = (k / 7) * Math.PI * 2 + 0.3;
+        ctx.shadowBlur = 14;
+        ctx.lineWidth = 3.2;
+        for (let k = 0; k < 8; k++) {
+          const ang = (k / 8) * Math.PI * 2 + 0.3;
           ctx.beginPath();
           ctx.moveTo(cx, cy);
-          ctx.lineTo(cx + Math.cos(ang) * baseR * 0.8, cy + Math.sin(ang) * baseR * 0.8);
+          ctx.lineTo(cx + Math.cos(ang) * baseR * 0.78, cy + Math.sin(ang) * baseR * 0.78);
           ctx.lineTo(
-            cx + Math.cos(ang + 0.18) * baseR * 1.65,
-            cy + Math.sin(ang + 0.18) * baseR * 1.65
+            cx + Math.cos(ang + 0.2) * baseR * 1.32,
+            cy + Math.sin(ang + 0.2) * baseR * 1.32
+          );
+          ctx.lineTo(
+            cx + Math.cos(ang - 0.12) * baseR * 1.72,
+            cy + Math.sin(ang - 0.12) * baseR * 1.72
           );
           ctx.stroke();
         }
+        ctx.font = '800 15px system-ui, sans-serif';
+        ctx.fillStyle = '#e0f2fe';
+        ctx.textAlign = 'center';
+        ctx.fillText('💥 GURA GURA — SKY-SHATTERING TREMOR! 💥', cx, cy - baseR * 1.62);
       } else if (effect === 'gear5' && this.eraFilter === 'wano') {
         ctx.strokeStyle = '#f8fafc';
-        ctx.lineWidth = 8;
+        ctx.shadowColor = '#fde047';
+        ctx.shadowBlur = 16;
+        ctx.lineWidth = 9;
         ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.arc(cx, cy, baseR * 1.32, Math.PI * 0.85, Math.PI * 2.15);
+        ctx.arc(cx, cy, baseR * 1.34, Math.PI * 0.85, Math.PI * 2.15);
         ctx.stroke();
 
         ctx.strokeStyle = '#ef4444';
         ctx.lineWidth = 3.5;
-        for (let b = 0; b < 5; b++) {
-          const a = (b / 5) * Math.PI * 2 + this.elapsed * 6;
+        for (let b = 0; b < 6; b++) {
+          const a = (b / 6) * Math.PI * 2 + this.elapsed * 6;
           ctx.beginPath();
           ctx.moveTo(cx + Math.cos(a) * baseR * 0.9, cy + Math.sin(a) * baseR * 0.9);
           ctx.lineTo(
-            cx + Math.cos(a + 0.12) * baseR * 1.75,
-            cy + Math.sin(a + 0.12) * baseR * 1.75
+            cx + Math.cos(a + 0.15) * baseR * 1.35,
+            cy + Math.sin(a + 0.15) * baseR * 1.35
+          );
+          ctx.lineTo(
+            cx + Math.cos(a - 0.08) * baseR * 1.78,
+            cy + Math.sin(a - 0.08) * baseR * 1.78
           );
           ctx.stroke();
         }
@@ -1447,12 +1597,62 @@
         ctx.fillStyle = '#fde047';
         ctx.textAlign = 'center';
         ctx.fillText('🥁 DRUMS OF LIBERATION — GEAR 5! 🥁', cx, cy - baseR * 1.62);
+      } else if (effect === 'darkness') {
+        for (let v = 0; v < 4; v++) {
+          ctx.strokeStyle = v % 2 === 0 ? '#7c3aed' : '#1e1b4b';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          for (let a = 0; a < Math.PI * 3.5; a += 0.2) {
+            const spiralR = baseR * (1.7 - (a / (Math.PI * 3.5)) * 1.35);
+            const theta = a - this.elapsed * 5 + (v * Math.PI) / 2;
+            const px = cx + Math.cos(theta) * spiralR;
+            const py = cy + Math.sin(theta) * spiralR;
+            if (a === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+        }
+        ctx.font = '800 15px system-ui, sans-serif';
+        ctx.fillStyle = '#c4b5fd';
+        ctx.textAlign = 'center';
+        ctx.fillText('🌀 KUROUZU — BLACK VORTEX GRAVITY! 🌀', cx, cy - baseR * 1.62);
+      } else if (effect === 'strings') {
+        ctx.strokeStyle = 'rgba(248, 250, 252, 0.88)';
+        ctx.lineWidth = 1.6;
+        for (let s = 0; s < 16; s++) {
+          const ang = (s / 16) * Math.PI * 2 + Math.sin(this.elapsed * 3 + s) * 0.1;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy - baseR * 1.65);
+          ctx.quadraticCurveTo(
+            cx + Math.cos(ang) * baseR * 1.5,
+            cy + Math.sin(ang) * baseR * 0.5,
+            cx + Math.cos(ang) * baseR * 1.75,
+            cy + baseR * 1.3
+          );
+          ctx.stroke();
+        }
+        ctx.font = '800 15px system-ui, sans-serif';
+        ctx.fillStyle = '#fbcfe8';
+        ctx.textAlign = 'center';
+        ctx.fillText('🕸️ ITO ITO — OVERHEAT SKY STRINGS! 🕸️', cx, cy - baseR * 1.62);
       } else {
-        ctx.strokeStyle = fruit.auraColor;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(cx, cy, baseR * (1.2 + ((this.elapsed * 1.5) % 0.6)), 0, Math.PI * 2);
-        ctx.stroke();
+        for (let ring = 0; ring < 2; ring++) {
+          ctx.strokeStyle = ring === 0 ? fruit.auraColor : fruit.secondaryColor;
+          ctx.lineWidth = 3.5 - ring;
+          ctx.beginPath();
+          ctx.arc(
+            cx,
+            cy,
+            baseR * (1.12 + ((this.elapsed * 1.6 + ring * 0.3) % 0.65)),
+            0,
+            Math.PI * 2
+          );
+          ctx.stroke();
+        }
+        ctx.font = '800 15px system-ui, sans-serif';
+        ctx.fillStyle = fruit.auraColor;
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ ' + fruit.englishName.toUpperCase() + ' UNLEASHED! ⚡', cx, cy - baseR * 1.62);
       }
       ctx.restore();
     }

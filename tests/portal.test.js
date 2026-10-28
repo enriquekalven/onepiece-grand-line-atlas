@@ -93,9 +93,24 @@ test('Dataset completeness & referential integrity across maps, globe, arcs, cha
     assert.ok(mapIds.has(arc.mapId), `Invalid mapId on arc ${arc.id}`);
     assert.ok(charIds.has(arc.heroCharacterId), `Invalid heroCharacterId on arc ${arc.id}`);
   }
+
+  // Verify all 18 Devil Fruits have canonical Zukan card artwork, transparent 3D cutout sprites, and morphology notes
+  for (const df of ONE_PIECE_DATA.devilFruits) {
+    assert.ok(df.image, `Devil Fruit ${df.id} missing canonical image`);
+    assert.ok(df.sprite, `Devil Fruit ${df.id} missing 3D sprite`);
+    assert.ok(df.zukanShape && df.zukanShape.length > 15, `Devil Fruit ${df.id} missing zukanShape`);
+    assert.ok(
+      fs.existsSync(path.join(PUBLIC_DIR, df.image.replace(/^\//, ''))),
+      `Missing Devil Fruit card file on disk: ${df.image}`
+    );
+    assert.ok(
+      fs.existsSync(path.join(PUBLIC_DIR, df.sprite.replace(/^\//, ''))),
+      `Missing Devil Fruit 3D sprite file on disk: ${df.sprite}`
+    );
+  }
 });
 
-test('Spoiler Shield strictly prevents Wano / Gear 5 / Nika / 3B Bounty leaks in East Blue & Pre-Timeskip', () => {
+test('Spoiler Shield strictly prevents Wano / Gear 5 / Nika / Vinsmoke / 3B Bounty leaks in East Blue & Pre-Timeskip', () => {
   const rawLuffy = ONE_PIECE_DATA.characters.find((c) => c.id === 'luffy');
   const eastBlueLuffy = OP_HELPERS.getCharacterForEra(rawLuffy, 'east-blue');
   assert.equal(eastBlueLuffy.bounty, 30000000);
@@ -117,6 +132,18 @@ test('Spoiler Shield strictly prevents Wano / Gear 5 / Nika / 3B Bounty leaks in
   const wanoLuffy = OP_HELPERS.getCharacterForEra(rawLuffy, 'wano');
   assert.equal(wanoLuffy.bounty, 3000000000);
   assert.equal(wanoLuffy.canUseGear5Photo, true);
+
+  // Sanji Vinsmoke surname gated until Whole Cake / Wano, plus ONLY ALIVE Dressrosa milestone
+  const rawSanji = ONE_PIECE_DATA.characters.find((c) => c.id === 'sanji');
+  assert.equal(OP_HELPERS.getCharacterForEra(rawSanji, 'east-blue').name, 'Sanji');
+  assert.equal(OP_HELPERS.getCharacterForEra(rawSanji, 'pre-timeskip').name, 'Sanji');
+  assert.equal(OP_HELPERS.getCharacterForEra(rawSanji, 'wano').name, 'Vinsmoke Sanji');
+
+  // Marine Cross Guild 5-Crown Fleet Admiral vs Pre-Timeskip Marine HQ Dossier
+  const rawAkainu = ONE_PIECE_DATA.characters.find((c) => c.id === 'akainu');
+  assert.equal(OP_HELPERS.getCharacterForEra(rawAkainu, 'pre-timeskip').posterHeader, 'MARINE HQ');
+  assert.equal(OP_HELPERS.getCharacterForEra(rawAkainu, 'wano').posterHeader, 'CROSS GUILD');
+  assert.equal(OP_HELPERS.getCharacterForEra(rawAkainu, 'wano').bounty, 5000000000);
 
   // Devil Fruit Nika check
   const rawGomu = ONE_PIECE_DATA.devilFruits.find((f) => f.id === 'gomu-nika');

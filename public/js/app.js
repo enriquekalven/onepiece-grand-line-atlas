@@ -74,6 +74,7 @@
     selectedFruitId: 'gomu-nika',
     fruitCategoryFilter: 'All',
     fruitSearch: '',
+    activeZukanBanner: 'paramecia',
 
     quizIndex: 0,
     quizScore: 0,
@@ -1499,10 +1500,15 @@
       attrs: { width: '280', height: '240', 'aria-label': '6-axis character power radar chart' }
     });
 
+    const posterHeaderText = activeChar.posterHeader || 'WANTED';
+    const posterConditionText =
+      activeMilestone.condition || activeChar.posterCondition || 'DEAD OR ALIVE';
+    const posterFooterText = activeChar.posterFooter || '— MARINE';
+
     const wantedPoster = el('article', { className: 'wanted-poster-card' }, [
       el('div', { className: 'wanted-parchment-frame' }, [
         el('div', { className: 'wanted-header' }, [
-          el('span', { className: 'wanted-title', text: 'WANTED' })
+          el('span', { className: 'wanted-title', text: posterHeaderText })
         ]),
         el('div', { className: 'wanted-photo-box' }, [
           el('img', {
@@ -1511,7 +1517,7 @@
             alt: activeChar.name
           })
         ]),
-        el('div', { className: 'wanted-dead-or-alive', text: 'DEAD OR ALIVE' }),
+        el('div', { className: 'wanted-dead-or-alive', text: posterConditionText }),
         el('div', { className: 'wanted-name-block' }, [
           el('h2', { className: 'wanted-char-name', text: activeChar.name.toUpperCase() }),
           el('p', { className: 'wanted-epithet', text: activeChar.epithet })
@@ -1519,7 +1525,7 @@
         el('div', { className: 'wanted-bounty-row' }, [
           el('span', { className: 'berry-symbol', text: '฿' }),
           el('span', { className: 'bounty-amount', text: activeMilestone.text }),
-          el('span', { className: 'berry-dash', text: '— MARINE' })
+          el('span', { className: 'berry-dash', text: posterFooterText })
         ])
       ]),
       bountyEvolutionBox,
@@ -1711,6 +1717,59 @@
   }
 
   function renderDevilFruitsInspector(container) {
+    // Era-filtered Illustrated Akuma no Mi Zukan (Devil Fruit Encyclopedia) Plates
+    const zukanPlates = [
+      {
+        key: 'paramecia',
+        era: 'east-blue',
+        btnText: '📖 Zukan Plate I: Paramecia & Zoan',
+        src: '/assets/banners/zukan-paramecia-zoan.jpg',
+        caption: '📖 Akuma no Mi Zukan Plate I — Gomu Gomu, Ope Ope, Hito Hito, Bara Bara, Hana Hana & Dragon!'
+      },
+      {
+        key: 'logia',
+        era: 'pre-timeskip',
+        btnText: '🔥 Zukan Plate II: Logia & Legends',
+        src: '/assets/banners/zukan-logia-legends.jpg',
+        caption: '🔥 Akuma no Mi Zukan Plate II — Mera Mera, Yami Yami, Gura Gura, Suna Suna, Mochi Mochi & Phoenix!'
+      },
+      {
+        key: 'admirals',
+        era: 'wano',
+        btnText: '⚡ Zukan Plate III: Admirals & Wano',
+        src: '/assets/banners/zukan-admirals-wano.jpg',
+        caption: '⚡ Akuma no Mi Zukan Plate III — Yomi Yomi, Ito Ito, Pika Pika, Hie Hie, Magu Magu & Wolf Deity!'
+      }
+    ].filter((p) => isEraAllowed(p.era));
+
+    const activePlate =
+      zukanPlates.find((p) => p.key === state.activeZukanBanner) || zukanPlates[0];
+    state.activeZukanBanner = activePlate.key;
+
+    const zukanGalleryBox = el('section', { className: 'art-gallery-banner' }, [
+      el(
+        'div',
+        { className: 'chip-row' },
+        zukanPlates.map((p) =>
+          el('button', {
+            type: 'button',
+            className: 'chip-btn' + (activePlate.key === p.key ? ' active' : ''),
+            text: p.btnText,
+            onClick: () => {
+              state.activeZukanBanner = p.key;
+              renderActivePanel();
+            }
+          })
+        )
+      ),
+      el('img', {
+        className: 'hero-art-banner-img zukan-plate-img',
+        src: activePlate.src,
+        alt: activePlate.caption
+      }),
+      el('p', { className: 'hero-art-caption', text: activePlate.caption })
+    ]);
+
     const searchRow = el('div', { className: 'search-sort-bar' }, [
       el('input', {
         id: 'fruit-search-input',
@@ -1767,9 +1826,9 @@
           },
           [
             el('img', {
-              className: 'pill-avatar',
-              src: wielder.image,
-              alt: wielder.name
+              className: 'pill-avatar fruit-pill-avatar',
+              src: df.image || wielder.image,
+              alt: df.name
             }),
             el('span', { text: df.englishName.split(' (')[0] })
           ]
@@ -1786,7 +1845,7 @@
     const unleashBtn = el('button', {
       type: 'button',
       className: 'action-btn gold full-width',
-      text: '⚡ Unleash ' + activeFruit.englishName.split(' (')[0] + ' Power in 3D Viewport!',
+      text: '⚡ Unleash ' + activeFruit.englishName.split(' (')[0] + ' Power in 3D Holodeck!',
       onClick: () => {
         engine3D.setMode('devil-fruit');
         engine3D.setDevilFruit(activeFruit);
@@ -1806,24 +1865,55 @@
         el('span', { className: 'badge-pill', text: activeFruit.category }),
         el('span', {
           className: 'coord-badge',
-          text: activeFruit.awakened ? '🌟 Awakened Confirmed!' : '🍇 Devil Fruit Power'
+          text: activeFruit.awakened ? '🌟 Awakened Confirmed!' : '📖 Akuma no Mi Zukan'
         })
       ]),
-      el('div', { className: 'island-hero-header' }, [
-        el('img', {
-          className: 'island-hero-portrait',
-          src: wielderImgUrl,
-          alt: activeFruit.user
-        }),
-        el('div', {}, [
-          el('h2', { className: 'card-title', text: activeFruit.name }),
-          el('p', {
-            className: 'card-subtitle',
-            text: activeFruit.englishName + ' • Wielded by: ' + activeFruit.user
+      el('div', { className: 'zukan-fruit-showcase' }, [
+        el('div', { className: 'zukan-fruit-art-frame' }, [
+          el('img', {
+            className: 'zukan-fruit-art-img',
+            src: activeFruit.image,
+            alt: activeFruit.name + ' canonical Devil Fruit illustration'
+          }),
+          el('span', {
+            className: 'zukan-fruit-art-caption',
+            text: '📖 Official Akuma no Mi Zukan Form'
           })
+        ]),
+        el('div', { className: 'zukan-fruit-meta-col' }, [
+          el('div', { className: 'island-hero-header' }, [
+            el('img', {
+              className: 'island-hero-portrait',
+              src: wielderImgUrl,
+              alt: activeFruit.user
+            }),
+            el('div', {}, [
+              el('h2', { className: 'card-title', text: activeFruit.name }),
+              el('p', {
+                className: 'card-subtitle',
+                text: activeFruit.englishName + ' • Wielded by: ' + activeFruit.user
+              })
+            ])
+          ]),
+          activeFruit.zukanShape
+            ? el('div', { className: 'zukan-shape-callout' }, [
+                el('strong', { text: '🍇 Canonical Manga Morphology & Source:' }),
+                el('p', { text: activeFruit.zukanShape })
+              ])
+            : null,
+          el('button', {
+            type: 'button',
+            className: 'inline-link-btn',
+            text: '🏴‍☠️ Inspect ' + wielderChar.name + ' Poster & Stats →',
+            onClick: () => {
+              state.selectedCharacterId = wielderChar.id;
+              state.selectedBountyIndex = null;
+              switchTab('characters');
+            }
+          }),
+          unleashBtn
         ])
       ]),
-      unleashBtn,
       el('p', { className: 'card-body-text', text: activeFruit.powerSummary }),
       el('div', { className: 'lesson-callout' }, [
         el('strong', { text: '🌊 Natural Weakness & Counter:' }),
@@ -1831,6 +1921,7 @@
       ])
     ]);
 
+    container.appendChild(zukanGalleryBox);
     container.appendChild(searchRow);
     container.appendChild(chipRow);
     container.appendChild(fruitGrid);

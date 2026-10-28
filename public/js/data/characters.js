@@ -150,8 +150,8 @@
       bountyText: '1,032,000,000',
       bountyHistory: [
         { era: 'east-blue', label: 'Baratie Sous-Chef', bounty: 0, text: 'Sous-Chef (Pre-Bounty)' },
-        { era: 'pre-timeskip', label: 'Enies Lobby (Drawn Sketch!)', bounty: 77000000, text: '77,000,000' },
-        { era: 'wano', label: 'Dressrosa', bounty: 177000000, text: '177,000,000' },
+        { era: 'pre-timeskip', label: 'Enies Lobby (Drawn Sketch!)', bounty: 77000000, text: '77,000,000 (Hand-Drawn Sketch!)' },
+        { era: 'wano', label: 'Dressrosa (ONLY ALIVE!)', bounty: 177000000, text: '177,000,000', condition: 'ONLY ALIVE' },
         { era: 'wano', label: 'Whole Cake Island', bounty: 330000000, text: '330,000,000' },
         { era: 'wano', label: 'Wano (Ifrit Jambe!)', bounty: 1032000000, text: '1,032,000,000' }
       ],
@@ -173,6 +173,7 @@
         "The Straw Hats' world-class chef who fights strictly with kicks to protect his cooking hands! In Wano he ignited blue-hot Ifrit Jambe flames, and his lifelong dream is finding the All Blue!",
       eraSnapshots: {
         'east-blue': {
+          name: 'Sanji',
           bounty: 0,
           bountyText: 'Baratie Fighting Chef',
           tier: 'East Blue Ace',
@@ -185,6 +186,7 @@
             'Trained under Red-Leg Zeff aboard the ocean restaurant Baratie! Sanji joins Luffy so he can find the legendary All Blue ocean where fish from every sea swim together.'
         },
         'pre-timeskip': {
+          name: 'Sanji',
           bounty: 77000000,
           bountyText: '77,000,000 (Hilarious Hand-Drawn Poster!)',
           tier: 'Grand Line Officer',
@@ -1002,7 +1004,7 @@
       faction: 'Seven Warlords / Legends',
       crewSlot: 'navigator',
       role: 'Former King of Dressrosa & Warlord',
-      era: 'wano',
+      era: 'pre-timeskip',
       image: '/assets/characters/doflamingo.jpg',
       bounty: 340000000,
       bountyText: '340,000,000 (Frozen Warlord)',
@@ -1022,7 +1024,17 @@
         'Overheat Whip & Sky-Cloud Swinging'
       ],
       kidBio:
-        'Wearing his signature pink feather coat and sunglasses, Doflamingo swings from clouds on invisible strings and pushed Luffy to unveil Gear 4: Bounce-Man on Dressrosa!'
+        'Wearing his signature pink feather coat and sunglasses, Doflamingo swings from clouds on invisible strings and pushed Luffy to unveil Gear 4: Bounce-Man on Dressrosa!',
+      eraSnapshots: {
+        'pre-timeskip': {
+          role: 'Seven Warlords of the Sea',
+          devilFruit: 'Ito Ito no Mi (String-String Fruit — Paramecia)',
+          haki: [],
+          signatureMoves: ['Parasite (Invisible Puppeteer Strings!)', 'Five Color Strings'],
+          kidBio:
+            'A flamboyant, scheming Warlord in a pink feather coat who debuted in Jaya and Marineford, controlling pirates like puppets with unseen strings!'
+        }
+      }
     },
     {
       id: 'hancock',
@@ -1072,8 +1084,11 @@
       role: "Marine Vice Admiral (Luffy's Grandfather)",
       era: 'pre-timeskip',
       image: '/assets/characters/garp.jpg',
+      posterHeader: 'CROSS GUILD',
+      posterCondition: '★★★ 3-CROWN MARINE TARGET',
+      posterFooter: '— CROSS GUILD',
       bounty: 3000000000,
-      bountyText: 'Hero of the Marines (Admiral-Tier Legend)',
+      bountyText: '3,000,000,000 (★★★ 3 Crowns)',
       tier: 'PK / Legend',
       powerScore: 96,
       accentColor: '#60a5fa',
@@ -1085,12 +1100,25 @@
       ],
       stats: { strength: 99, speed: 94, durability: 96, haki: 99, devilFruit: 90, battleIQ: 95 },
       signatureMoves: [
+        'Galaxy Impact! (Conqueror\'s Shockwave Fist)',
         'Fist of Love (Hurts Rubber Luffy Through Pure Grandpa Spirit!)',
-        'Meteor Cannonball Pitch',
         '8-Mountain Warmup Smash'
       ],
       kidBio:
-        "Luffy's booming, rice-cracker-munching grandfather who cornered Gol D. Roger across the seas and refused promotions to Admiral so he could stay free!"
+        "Luffy's booming, rice-cracker-munching grandfather who cornered Gol D. Roger across the seas and refused promotions to Admiral so he could stay free!",
+      eraSnapshots: {
+        'pre-timeskip': {
+          posterHeader: 'MARINE HQ',
+          posterCondition: 'HERO OF THE MARINES',
+          posterFooter: '— WORLD GOV',
+          bountyText: 'Hero of the Marines (Vice Admiral)',
+          signatureMoves: [
+            'Fist of Love (Hurts Rubber Luffy!)',
+            'Meteor Cannonball Pitch',
+            '8-Mountain Warmup Smash'
+          ]
+        }
+      }
     },
     {
       id: 'akainu',
@@ -1098,11 +1126,14 @@
       epithet: 'Fleet Admiral of the Marines — "Red Dog"',
       faction: 'Marines & World Gov',
       crewSlot: 'captain',
-      role: 'Fleet Admiral',
+      role: 'Fleet Admiral of Marine HQ',
       era: 'pre-timeskip',
       image: '/assets/characters/akainu.jpg',
-      bounty: 3500000000,
-      bountyText: 'Fleet Admiral of Marine HQ',
+      posterHeader: 'CROSS GUILD',
+      posterCondition: '★★★★★ 5-CROWN FLEET ADMIRAL',
+      posterFooter: '— CROSS GUILD',
+      bounty: 5000000000,
+      bountyText: '5,000,000,000 (★★★★★ 5 Crowns)',
       tier: 'Yonko / Emperor',
       powerScore: 96,
       accentColor: '#f97316',
@@ -1117,7 +1148,20 @@
         'Ryusei Kazan (Meteor Volcano Shower)'
       ],
       kidBio:
-        'Fought Admiral Aokiji for 10 straight days on Punk Hazard — permanently turning half the island into blazing volcanoes and half into glaciers!'
+        'Fought Admiral Aokiji for 10 straight days on Punk Hazard — permanently turning half the island into blazing volcanoes and half into glaciers! Cross Guild placed an Emperor-level 5-Crown (5 Billion!) reward on the Fleet Admiral seat!',
+      eraSnapshots: {
+        'pre-timeskip': {
+          epithet: '"Red Dog" — Marine HQ Admiral',
+          role: 'Marine HQ Admiral',
+          posterHeader: 'MARINE HQ',
+          posterCondition: 'THOROUGH JUSTICE',
+          posterFooter: '— WORLD GOV',
+          bounty: 3000000000,
+          bountyText: 'Marine HQ Admiral',
+          kidBio:
+            'One of Marine Headquarters\' three powerhouse Logia Admirals at Marineford, commanding molten volcanic magma!'
+        }
+      }
     },
     {
       id: 'kizaru',
@@ -1128,8 +1172,11 @@
       role: 'Marine Admiral (Speed of Light!)',
       era: 'pre-timeskip',
       image: '/assets/characters/kizaru.jpg',
+      posterHeader: 'CROSS GUILD',
+      posterCondition: '★★★ 3-CROWN ADMIRAL TARGET',
+      posterFooter: '— CROSS GUILD',
       bounty: 3000000000,
-      bountyText: 'Marine HQ Admiral',
+      bountyText: '3,000,000,000 (★★★ 3 Crowns)',
       tier: 'Admiral / Top Tier',
       powerScore: 94,
       accentColor: '#facc15',
@@ -1145,7 +1192,15 @@
         'Ama no Murakumo (Blade of Pure Light)'
       ],
       kidBio:
-        'Talks super slowly ("Oooooh~ scary~") despite being the fastest man in the Marines who moves and kicks at the literal speed of light!'
+        'Talks super slowly ("Oooooh~ scary~") despite being the fastest man in the Marines who moves and kicks at the literal speed of light!',
+      eraSnapshots: {
+        'pre-timeskip': {
+          posterHeader: 'MARINE HQ',
+          posterCondition: 'UNCLEAR JUSTICE',
+          posterFooter: '— WORLD GOV',
+          bountyText: 'Marine HQ Admiral'
+        }
+      }
     },
     {
       id: 'aokiji',
@@ -1156,6 +1211,8 @@
       role: 'Ice-Age Wanderer (Garp\'s Former Student)',
       era: 'pre-timeskip',
       image: '/assets/characters/aokiji.jpg',
+      posterHeader: 'FORMER ADMIRAL',
+      posterCondition: 'ROGUE NEW WORLD POWERHOUSE',
       bounty: 3000000000,
       bountyText: 'Former Marine HQ Admiral',
       tier: 'Admiral / Top Tier',
@@ -1173,7 +1230,17 @@
         'Ice Block: Partisan'
       ],
       kidBio:
-        'A laid-back bicycle rider who wears a sleep mask on his forehead! Kuzan froze two giant tsunamis solid at Marineford and helped young Nico Robin escape Ohara.'
+        'A laid-back bicycle rider who wears a sleep mask on his forehead! Kuzan froze two giant tsunamis solid at Marineford and helped young Nico Robin escape Ohara.',
+      eraSnapshots: {
+        'pre-timeskip': {
+          epithet: '"Blue Pheasant" — Marine HQ Admiral',
+          role: 'Marine HQ Admiral',
+          posterHeader: 'MARINE HQ',
+          posterCondition: 'LAZY JUSTICE',
+          posterFooter: '— WORLD GOV',
+          bountyText: 'Marine HQ Admiral'
+        }
+      }
     },
     {
       id: 'ace',
