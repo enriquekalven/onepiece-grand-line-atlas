@@ -1,13 +1,16 @@
 /**
- * Google Analytics 4 (GA4) & Opt-In Cookie Consent Controller
- * Provisioned in GCP project `project-maui` for `onepiece-grand-line-atlas.web.app`
- * Strict kid-safe configuration: ad signals disabled, IP anonymized, strictly opt-in.
+ * Google Analytics 4 (GA4) & Firebase Web Analytics Controller
+ * Provisioned in GCP project `project-maui` (Analytics Property `521061448`, Stream `16224276117`)
+ * for `onepiece-grand-line-atlas.web.app`.
+ * Strictly opt-in & kid-safe: ad signals disabled, restricted data processing enabled, IP anonymized.
  */
 (function initOnePieceAnalyticsModule(root) {
   'use strict';
 
   var GA_MEASUREMENT_ID = 'G-3XD1EEG3BC';
   var FIREBASE_APP_ID = '1:697625214430:web:4eb1c198ecde36fc82f14f';
+  var PROPERTY_ID = '521061448';
+  var STREAM_ID = '16224276117';
   var CONSENT_STORAGE_KEY = 'onepiece-analytics-consent';
 
   var PROD_HOSTS = new Set([
@@ -27,14 +30,17 @@
   }
 
   function getSavedConsent() {
+    if (typeof window === 'undefined') return null;
     try {
-      return window.localStorage.getItem(CONSENT_STORAGE_KEY);
+      var val = window.localStorage.getItem(CONSENT_STORAGE_KEY);
+      return val === 'granted' || val === 'denied' ? val : null;
     } catch (_e) {
       return null;
     }
   }
 
   function saveConsent(value) {
+    if (typeof window === 'undefined') return;
     try {
       window.localStorage.setItem(CONSENT_STORAGE_KEY, value);
     } catch (_e) {
@@ -42,14 +48,25 @@
     }
   }
 
-  function enableAnalytics() {
-    if (typeof window === 'undefined') return;
-    window['ga-disable-' + GA_MEASUREMENT_ID] = false;
-    analyticsEnabled = true;
-
-    if (!isAnalyticsAllowedHost()) {
-      return;
+  function clearGaCookies() {
+    if (typeof document === 'undefined') return;
+    var names = ['_ga', '_ga_' + GA_MEASUREMENT_ID.replace(/^G-/, '')];
+    var host = typeof window !== 'undefined' && window.location ? window.location.hostname : '';
+    var domains = [undefined, host, host ? '.' + host : undefined];
+    for (var i = 0; i < names.length; i++) {
+      for (var j = 0; j < domains.length; j++) {
+        var domainPart = domains[j] ? '; domain=' + domains[j] : '';
+        document.cookie =
+          names[i] + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + domainPart + '; SameSite=Lax';
+      }
     }
+  }
+
+  function enableAnalytics() {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    var shouldMeasure = isAnalyticsAllowedHost();
+    window['ga-disable-' + GA_MEASUREMENT_ID] = !shouldMeasure;
+    analyticsEnabled = shouldMeasure;
 
     if (analyticsLoaded) {
       if (typeof window.gtag === 'function') {
@@ -65,9 +82,10 @@
 
     analyticsLoaded = true;
     window.dataLayer = window.dataLayer || [];
-    window.gtag = function gtag() {
+    function gtag() {
       window.dataLayer.push(arguments);
-    };
+    }
+    window.gtag = window.gtag || gtag;
 
     window.gtag('consent', 'default', {
       analytics_storage: 'granted',
@@ -78,18 +96,31 @@
 
     window.gtag('js', new Date());
     window.gtag('config', GA_MEASUREMENT_ID, {
+      page_path: window.location ? window.location.pathname + window.location.search : '/',
+      site_name: 'onepiece-grand-line-atlas',
       app_name: 'One Piece 3D Grand Line Atlas',
       firebase_app_id: FIREBASE_APP_ID,
       anonymize_ip: true,
       allow_google_signals: false,
       allow_ad_personalization_signals: false,
-      cookie_flags: 'SameSite=None;Secure'
+      restricted_data_processing: true,
+      cookie_flags: 'SameSite=Lax;Secure'
     });
 
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA_MEASUREMENT_ID);
-    document.head.appendChild(script);
+    if (shouldMeasure && document.head) {
+      var script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA_MEASUREMENT_ID);
+      document.head.appendChild(script);
+    }
+
+    window.__onePieceAnalytics = {
+      measurementId: GA_MEASUREMENT_ID,
+      firebaseAppId: FIREBASE_APP_ID,
+      propertyId: PROPERTY_ID,
+      streamId: STREAM_ID,
+      disabledOnLocal: Boolean(window['ga-disable-' + GA_MEASUREMENT_ID])
+    };
   }
 
   function disableAnalytics() {
@@ -104,10 +135,16 @@
         ad_personalization: 'denied'
       });
     }
+    clearGaCookies();
   }
 
   function trackEvent(eventName, eventParams) {
-    if (!analyticsEnabled || typeof window === 'undefined' || typeof window.gtag !== 'function') {
+    if (
+      !analyticsEnabled ||
+      typeof window === 'undefined' ||
+      window['ga-disable-' + GA_MEASUREMENT_ID] ||
+      typeof window.gtag !== 'function'
+    ) {
       return;
     }
     try {
@@ -132,6 +169,7 @@
       disableAnalytics();
       if (banner) banner.hidden = true;
     } else {
+      window['ga-disable-' + GA_MEASUREMENT_ID] = true;
       if (banner) banner.hidden = false;
     }
 
@@ -164,12 +202,15 @@
   var api = {
     GA_MEASUREMENT_ID: GA_MEASUREMENT_ID,
     FIREBASE_APP_ID: FIREBASE_APP_ID,
+    PROPERTY_ID: PROPERTY_ID,
+    STREAM_ID: STREAM_ID,
     CONSENT_STORAGE_KEY: CONSENT_STORAGE_KEY,
     enableAnalytics: enableAnalytics,
     disableAnalytics: disableAnalytics,
     trackEvent: trackEvent,
     initCookieConsent: initCookieConsent,
-    getSavedConsent: getSavedConsent
+    getSavedConsent: getSavedConsent,
+    clearGaCookies: clearGaCookies
   };
 
   if (typeof module !== 'undefined' && module.exports) {
