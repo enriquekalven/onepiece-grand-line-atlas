@@ -1410,6 +1410,11 @@ html[data-theme="light"] .laugh-quote-text {
   background-color: rgba(250, 204, 21, 0.15);
 }
 
+html[data-theme="light"] .dock-channel-btn.active {
+  background-color: #fef3c7;
+  border-color: #b45309;
+}
+
 .dock-ch-num {
   font-size: 0.68rem;
   font-weight: 900;

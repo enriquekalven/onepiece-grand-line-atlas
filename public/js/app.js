@@ -32,12 +32,12 @@
       const params = new URLSearchParams(window.location.search || '');
       const urlTheme = params.get('theme');
       if (urlTheme === 'light' || urlTheme === 'dark') return urlTheme;
-      const stored = window.localStorage.getItem('onepiece-theme');
+      const stored = window.localStorage.getItem('onepiece-theme-pref');
       if (stored === 'light' || stored === 'dark') return stored;
     } catch (_e) {
       // Ignore storage errors
     }
-    return 'dark';
+    return 'light';
   }
 
   const state = {
@@ -109,11 +109,14 @@
     });
   }
 
-  function applyThemeMode(themeMode) {
-    state.theme = themeMode === 'light' ? 'light' : 'dark';
+  function applyThemeMode(themeMode, persistUserChoice = false) {
+    state.theme = themeMode === 'dark' ? 'dark' : 'light';
     document.documentElement.dataset.theme = state.theme;
     try {
-      window.localStorage.setItem('onepiece-theme', state.theme);
+      window.localStorage.removeItem('onepiece-theme');
+      if (persistUserChoice) {
+        window.localStorage.setItem('onepiece-theme-pref', state.theme);
+      }
     } catch (_e) {
       // Ignore storage error
     }
@@ -2489,7 +2492,7 @@
     if (themeBtn) {
       themeBtn.addEventListener('click', () => {
         const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
-        applyThemeMode(nextTheme);
+        applyThemeMode(nextTheme, true);
         soundFX.playLogPoseChime();
         if (ANALYTICS) {
           ANALYTICS.trackEvent('toggle_theme', { theme: nextTheme });
