@@ -524,3 +524,106 @@ html:not([data-theme="light"]) .card-read-aloud-btn.speaking {
   color: var(--text-primary);
 }
 
+/* Global [hidden] Enforcement & Adaptive Full-Width vs Split Workspace */
+[hidden] {
+  display: none !important;
+}
+
+summary:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+.header-pill-btn.full-width {
+  width: 100%;
+  text-align: center;
+}
+
+.portal-main[data-layout="full"] {
+  grid-template-columns: 1fr;
+  max-width: 1460px;
+  height: auto;
+  overflow: visible;
+  padding: 1.25rem 1.5rem 2.5rem;
+}
+
+.portal-main[data-layout="full"] .inspector-section {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.portal-main[data-layout="full"] .inspector-scroll {
+  overflow: visible;
+  padding: 0;
+  gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .portal-main[data-layout="full"] {
+    padding: 0.875rem 0.875rem 2rem;
+  }
+}
+
+/* Compact Header "More" Popover Menu */
+.header-more-menu {
+  position: relative;
+}
+
+.more-summary-btn {
+  list-style: none;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.more-summary-btn::-webkit-details-marker {
+  display: none;
+}
+
+.header-more-menu[open] .more-summary-btn {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.header-more-popover {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: min(90vw, 290px);
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: 0.875rem;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+html[data-theme="light"] .header-more-popover {
+  box-shadow: 0 14px 32px rgba(74, 53, 32, 0.18);
+}
+
+.more-menu-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.more-menu-row label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.more-menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--border-default);
+}

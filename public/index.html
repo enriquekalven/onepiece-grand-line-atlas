@@ -16,26 +16,19 @@
     <div class="brand-lockup">
       <div class="strawhat-emblem" aria-hidden="true">🏴‍☠️</div>
       <div>
-        <h1 id="portal-brand-title" class="portal-title">GRAND LINE 3D &amp; MANGA ATLAS</h1>
-        <p id="portal-brand-subtitle" class="portal-tagline">Interactive 3D Planet, Canonical Manga Maps, Log Pose Timeline, 30+ Characters, Dream Crew &amp; Devil Fruits</p>
+        <h1 id="portal-brand-title" class="portal-title">ONE PIECE ATLAS</h1>
+        <p id="portal-brand-subtitle" class="portal-tagline">Characters, Wanted Bounties, Vivre Cards &amp; 3D World</p>
       </div>
     </div>
 
     <div class="header-controls-cluster">
-      <div class="lang-picker-box" title="Choose Language / Seleccionar Idioma">
-        <label for="lang-select" class="spoiler-label" aria-label="Select Language">🌐</label>
-        <select id="lang-select" class="portal-select" aria-label="Select Portal Language">
-          <option value="en">🇺🇸 English</option>
-          <option value="es">🇪🇸 Español</option>
-          <option value="zh">🇨🇳 中文 (普通话)</option>
-          <option value="yue">🇭🇰 粵語 (廣東話)</option>
-          <option value="ja">🇯🇵 日本語</option>
-          <option value="ko">🇰🇷 한국어</option>
-          <option value="pt">🇧🇷 Português</option>
-          <option value="fr">🇫🇷 Français</option>
-          <option value="it">🇮🇹 Italiano</option>
-          <option value="de">🇩🇪 Deutsch</option>
-          <option value="ar">🇸🇦 العربية</option>
+      <div class="spoiler-shield-box">
+        <label for="spoiler-select" id="spoiler-shield-label" class="spoiler-label">🛡️ Era:</label>
+        <select id="spoiler-select" class="portal-select" aria-label="Select story spoiler level">
+          <option value="egghead" id="spoiler-opt-egghead" selected>🔥 Egghead (Latest)</option>
+          <option value="wano" id="spoiler-opt-wano">⚔️ Up to Wano</option>
+          <option value="pre-timeskip" id="spoiler-opt-pre">🌊 Pre-Timeskip</option>
+          <option value="east-blue" id="spoiler-opt-east">🌊 East Blue</option>
         </select>
       </div>
 
@@ -49,22 +42,6 @@
         🗣️ Read Aloud
       </button>
 
-      <div class="voice-picker-box" title="Select Narrator Voice">
-        <label for="narrator-voice-select" id="narrator-voice-label" class="spoiler-label">🎙️ Voice</label>
-        <select id="narrator-voice-select" class="portal-select" aria-label="Select Narrator Voice">
-          <option value="">✨ Best Voice (Auto)</option>
-        </select>
-      </div>
-
-      <button
-        type="button"
-        id="poneglyph-status-btn"
-        class="header-pill-btn poneglyph-pill"
-        aria-label="Open Road Poneglyph Treasure Hunt tracker"
-      >
-        🟥 Road Poneglyphs: 0/4
-      </button>
-
       <button
         type="button"
         id="theme-toggle-btn"
@@ -75,97 +52,129 @@
         🌙 Dark
       </button>
 
-      <button
-        type="button"
-        id="sound-toggle-btn"
-        class="header-pill-btn"
-        aria-pressed="true"
-        aria-label="Toggle anime sound effects"
-      >
-        🔊 Sound FX: ON
-      </button>
+      <details id="header-more-menu" class="header-more-menu">
+        <summary class="header-pill-btn more-summary-btn" aria-label="More portal settings and quests">
+          ⚙️ More
+        </summary>
+        <div class="header-more-popover">
+          <div class="more-menu-row">
+            <label for="lang-select" class="spoiler-label">🌐 Language</label>
+            <select id="lang-select" class="portal-select full-width" aria-label="Select Portal Language">
+              <option value="en">🇺🇸 English</option>
+              <option value="es">🇪🇸 Español</option>
+              <option value="zh">🇨🇳 中文 (普通话)</option>
+              <option value="yue">🇭🇰 粵語 (廣東話)</option>
+              <option value="ja">🇯🇵 日本語</option>
+              <option value="ko">🇰🇷 한국어</option>
+              <option value="pt">🇧🇷 Português</option>
+              <option value="fr">🇫🇷 Français</option>
+              <option value="it">🇮🇹 Italiano</option>
+              <option value="de">🇩🇪 Deutsch</option>
+              <option value="ar">🇸🇦 العربية</option>
+            </select>
+          </div>
 
-      <div class="spoiler-shield-box">
-        <label for="spoiler-select" id="spoiler-shield-label" class="spoiler-label">🛡️ Spoiler Shield:</label>
-        <select id="spoiler-select" class="portal-select" aria-label="Select story spoiler level">
-          <option value="egghead" id="spoiler-opt-egghead" selected>🔥 Egghead &amp; Elbaph (Ep 1086+)</option>
-          <option value="wano" id="spoiler-opt-wano">⚔️ Up to Wano (Ep 1–1085)</option>
-          <option value="pre-timeskip" id="spoiler-opt-pre">🌊 Pre-Timeskip (Ep 1–516)</option>
-          <option value="east-blue" id="spoiler-opt-east">🌊 East Blue Only (Ep 1–61)</option>
-        </select>
-      </div>
+          <div class="more-menu-row">
+            <label for="narrator-voice-select" id="narrator-voice-label" class="spoiler-label">🎙️ Voice</label>
+            <select id="narrator-voice-select" class="portal-select full-width" aria-label="Select Narrator Voice">
+              <option value="">✨ Best Voice (Auto)</option>
+            </select>
+          </div>
 
-      <button
-        type="button"
-        id="btn-cookie-settings"
-        class="header-pill-btn cookie-pill-btn"
-        title="Cookie & Privacy Preferences"
-        aria-label="Cookie and Privacy Preferences"
-      >
-        🍪
-      </button>
+          <div class="more-menu-actions">
+            <button
+              type="button"
+              id="sound-toggle-btn"
+              class="header-pill-btn full-width"
+              aria-pressed="true"
+              aria-label="Toggle anime sound effects"
+            >
+              🔊 Sound FX: ON
+            </button>
+
+            <button
+              type="button"
+              id="poneglyph-status-btn"
+              class="header-pill-btn poneglyph-pill full-width"
+              aria-label="Open Road Poneglyph Treasure Hunt tracker"
+            >
+              🟥 Road Poneglyphs: 0/4
+            </button>
+
+            <button
+              type="button"
+              id="btn-cookie-settings"
+              class="header-pill-btn cookie-pill-btn full-width"
+              title="Cookie & Privacy Preferences"
+              aria-label="Cookie and Privacy Preferences"
+            >
+              🍪 Privacy Preferences
+            </button>
+          </div>
+        </div>
+      </details>
     </div>
   </header>
 
   <nav class="portal-nav" role="tablist" aria-label="One Piece Portal Explorer Modes">
-    <button type="button" class="nav-tab-btn active" data-tab-btn="globe" role="tab" aria-selected="true">
-      🌍 3D World &amp; Oceans
+    <button type="button" class="nav-tab-btn active" data-tab-btn="characters" role="tab" aria-selected="true">
+      🏴‍☠️ Characters (38)
+    </button>
+    <button type="button" class="nav-tab-btn" data-tab-btn="globe" role="tab" aria-selected="false">
+      🌍 3D World
     </button>
     <button type="button" class="nav-tab-btn" data-tab-btn="maps" role="tab" aria-selected="false">
-      🗺️ Manga &amp; Anime Maps
-    </button>
-    <button type="button" class="nav-tab-btn" data-tab-btn="timeline" role="tab" aria-selected="false">
-      🧭 3D Log Pose Timeline
+      🗺️ Maps
     </button>
     <button type="button" class="nav-tab-btn" data-tab-btn="ships" role="tab" aria-selected="false">
-      ⛵ 3D Shipwright Dock
-    </button>
-    <button type="button" class="nav-tab-btn" data-tab-btn="characters" role="tab" aria-selected="false">
-      🏴‍☠️ Characters &amp; Vivre Cards (38)
-    </button>
-    <button type="button" class="nav-tab-btn" data-tab-btn="crew" role="tab" aria-selected="false">
-      ⚓ Build Pirate Crew
+      ⛵ Ships
     </button>
     <button type="button" class="nav-tab-btn" data-tab-btn="devil-fruits" role="tab" aria-selected="false">
-      🍇 3D Devil Fruits (21)
+      🍇 Devil Fruits
+    </button>
+    <button type="button" class="nav-tab-btn" data-tab-btn="crew" role="tab" aria-selected="false">
+      ⚓ Crew Builder
+    </button>
+    <button type="button" class="nav-tab-btn" data-tab-btn="timeline" role="tab" aria-selected="false">
+      🧭 Timeline
     </button>
     <button type="button" class="nav-tab-btn" data-tab-btn="lore" role="tab" aria-selected="false">
-      📜 Lore, Haki &amp; Quiz
+      📜 Lore &amp; Quiz
     </button>
   </nav>
 
-  <main class="portal-main">
-    <!-- Left / Top: Interactive 3D & Manga Map Viewport -->
-    <section class="viewport-section" aria-label="Interactive 3D One Piece and Manga Map Viewport">
+  <main id="portal-main" class="portal-main" data-layout="full">
+    <!-- Left / Top: Interactive 3D & Manga Map Viewport (shown only on 3D/Map tabs) -->
+    <section id="viewport-section" class="viewport-section" hidden aria-label="Interactive 3D One Piece and Manga Map Viewport">
       <div class="viewport-top-overlay">
         <span id="viewport-mode-badge" class="viewport-badge">🌍 3D ONE PIECE PLANET GLOBE</span>
         <span id="viewport-hint-text" class="viewport-hint">
-          Drag to spin • Pinch/scroll to zoom • Toggle 🧭 45° X-Tilt below to match Crocus's map!
+          Drag to spin • Pinch/scroll to zoom • Click any glowing island pin!
         </span>
       </div>
 
       <!-- Quick Switcher between 3D Globe and the 6 Canonical Manga/Anime Maps -->
-      <div class="viewport-map-switcher" role="toolbar" aria-label="Switch between 3D Globe and Canonical Manga Maps">
+      <div id="viewport-map-switcher" class="viewport-map-switcher" role="toolbar" aria-label="Switch between 3D Globe and Canonical Manga Maps">
         <button type="button" class="map-switch-btn active" data-view-switch="3d-globe">
-          🌍 3D Planet Globe
+          🌍 3D Globe
         </button>
         <button type="button" class="map-switch-btn" data-view-switch="grandline-sea-chart">
-          🗺️ Grand Line &amp; Road Poneglyph Map
+          🗺️ Grand Line
         </button>
         <button type="button" class="map-switch-btn" data-view-switch="reverse-mountain-x-map">
-          ⛰️ Reverse Mountain X-Map
+          ⛰️ Reverse Mtn
         </button>
         <button type="button" class="map-switch-btn" data-view-switch="vertical-cross-section-map">
-          ☁️ Sky (+10km) &amp; Fish-Man (-10km) Map
+          ☁️ Sky &amp; Depth
         </button>
         <button type="button" class="map-switch-btn" data-view-switch="wano-onigashima-woodblock-map">
-          🐉 Wano &amp; Onigashima Map
+          🐉 Wano
         </button>
         <button type="button" class="map-switch-btn" data-view-switch="thousand-sunny-cutaway">
-          ⛵ Sunny Cutaway Blueprint
+          ⛵ Sunny Blueprint
         </button>
         <button type="button" class="map-switch-btn" data-view-switch="egghead-elbaph-map">
-          🧠 Egghead &amp; Elbaph Map
+          🧠 Egghead &amp; Elbaph
         </button>
       </div>
 
@@ -188,7 +197,7 @@
       </div>
     </section>
 
-    <!-- Right / Bottom: Interactive Lore, Maps, Timeline, Shipwright Dock, Wanted Posters, Crew Builder & Quiz -->
+    <!-- Main Character Dashboard & Interactive Inspector -->
     <aside class="inspector-section" aria-label="Interactive Lore and Character Inspector">
       <div id="inspector-content" class="inspector-scroll"></div>
     </aside>

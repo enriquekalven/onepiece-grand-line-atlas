@@ -236,9 +236,9 @@
     bindEvents() {
       window.addEventListener('resize', () => this.handleResize());
 
-      // Battery saver: pause 60fps loop while tab is hidden
+      // Battery saver: pause 60fps loop while tab is hidden or viewport is hidden
       document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
+        if (document.hidden || this.viewportVisible === false) {
           this.isLoopRunning = false;
         } else if (!this.isLoopRunning) {
           this.isLoopRunning = true;
@@ -392,13 +392,29 @@
     }
 
     handleResize() {
+      if (!this.canvas || !this.canvas.parentElement) return;
       const rect = this.canvas.parentElement.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       this.width = Math.max(300, rect.width);
       this.height = Math.max(350, rect.height);
       this.canvas.width = Math.floor(this.width * dpr);
       this.canvas.height = Math.floor(this.height * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    setViewportVisible(visible) {
+      this.viewportVisible = Boolean(visible);
+      if (!this.viewportVisible) {
+        this.isLoopRunning = false;
+        return;
+      }
+      this.handleResize();
+      if (!document.hidden && !this.isLoopRunning) {
+        this.isLoopRunning = true;
+        this.lastTime = performance.now();
+        requestAnimationFrame(this.animate);
+      }
     }
 
     isEraAllowed(itemEra) {

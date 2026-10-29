@@ -358,9 +358,11 @@ test('11-Language i18n (with V3 Shipwright & Egghead labels), Signature Laugh Au
   assert.equal(typeof sfx.playGaonCannon, 'function');
   assert.equal(sfx.getSpeechBcp47('yue'), 'zh-HK');
 
-  // Verify V3 HTML hooks and default Light Theme exist
+  // Verify V3 HTML hooks, Character-First default dashboard, and default Light Theme exist
   const indexHtml = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
   assert.ok(indexHtml.includes('data-theme="light"'), 'Expected default data-theme="light" on <html> in index.html');
+  assert.ok(indexHtml.includes('data-layout="full"'), 'Expected default data-layout="full" on #portal-main in index.html');
+  assert.ok(indexHtml.includes('id="header-more-menu"'), 'Expected compact #header-more-menu in index.html');
   assert.ok(indexHtml.includes('id="spoiler-opt-egghead"'), 'Expected #spoiler-opt-egghead in index.html');
   assert.ok(indexHtml.includes('data-tab-btn="ships"'), 'Expected ships tab button in index.html');
   assert.ok(indexHtml.includes('/js/data/ships.js'), 'Expected ships.js script tag in index.html');
@@ -368,7 +370,10 @@ test('11-Language i18n (with V3 Shipwright & Egghead labels), Signature Laugh Au
 
   const appJs = fs.readFileSync(path.join(PUBLIC_DIR, 'js', 'app.js'), 'utf8');
   assert.ok(appJs.includes("return 'light';"), 'Expected getInitialTheme() in app.js to default to light');
+  assert.ok(appJs.includes("activeTab: 'characters'"), 'Expected Characters to be the default activeTab in app.js');
 
   const baseCss = fs.readFileSync(path.join(PUBLIC_DIR, 'styles', 'base.css'), 'utf8');
   assert.ok(baseCss.includes('html[data-theme="light"]'), 'Expected Light Theme CSS rules in base.css');
+  assert.ok(baseCss.includes('.portal-main[data-layout="full"]'), 'Expected full-width layout CSS in base.css');
 });
+

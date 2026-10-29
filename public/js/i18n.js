@@ -38,8 +38,8 @@
 
   var UI_STRINGS = {
     en: {
-      brandTitle: 'ONE PIECE 3D GRAND LINE PORTAL',
-      brandSubtitle: 'Interactive Manga Atlas, Character Art, Devil Fruits & Haki Simulator for Young Explorers',
+      brandTitle: 'ONE PIECE ATLAS',
+      brandSubtitle: 'Characters, Wanted Bounties, Vivre Cards & 3D World',
       readAloud: '🗣️ Read Aloud',
       stopReading: '⏹ Stop Reading',
       voiceLabel: '🎙️ Voice',
@@ -48,17 +48,17 @@
       themeLight: '☀️ Light',
       soundOn: '🔊 Sound FX: ON',
       soundOff: '🔇 Sound FX: OFF',
-      spoilerLabel: '🛡️ Story Progress:',
-      spoilerEastBlue: '🌊 East Blue Only (Ep 1–61)',
+      spoilerLabel: '🛡️ Era:',
+      spoilerEastBlue: '🌊 East Blue (Ep 1–61)',
       spoilerWano: '⚔️ Up to Wano (Ep 1–1085)',
-      spoilerEgghead: '🔥 Current / Egghead (All)',
-      tabWorld: '🌐 3D Planet & Oceans',
-      tabMaps: '🗺️ Illustrated Manga Maps',
-      tabTimeline: '⏳ Story Arcs Timeline',
-      tabCharacters: '🏴‍☠️ Characters & Power',
-      tabCrew: '⚓ Build Your Crew',
-      tabFruits: '🍇 Devil Fruits & Haki',
-      tabLore: '🧭 What is the One Piece?',
+      spoilerEgghead: '🔥 Egghead (Latest)',
+      tabWorld: '🌍 3D World',
+      tabMaps: '🗺️ Maps',
+      tabTimeline: '🧭 Timeline',
+      tabCharacters: '🏴‍☠️ Characters (38)',
+      tabCrew: '⚓ Crew Builder',
+      tabFruits: '🍇 Devil Fruits',
+      tabLore: '📜 Lore & Quiz',
       badge3dGlobe: '🌐 3D Interactive Planet',
       badge2dAtlas: '🗺️ Illustrated Manga Atlas',
       hintWorld: 'Drag to spin the planet • Click any glowing island beacon • Collect 4 Road Poneglyphs! 🟥',
@@ -635,9 +635,9 @@
 
   var V3_UI_PATCH = {
     en: {
-      tabShips: '⛵ 3D Shipwright Dock',
+      tabShips: '⛵ Ships',
       spoilerPreTimeskip: '🌊 Pre-Timeskip (Ep 1–516)',
-      spoilerEgghead: '🔥 Egghead & Elbaph (Ep 1086+)'
+      spoilerEgghead: '🔥 Egghead (Latest)'
     },
     es: {
       tabShips: '⛵ Astillero 3D (Sunny y Merry)',

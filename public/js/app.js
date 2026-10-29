@@ -44,7 +44,7 @@
     lang: I18N ? I18N.getInitialLanguage() : 'en',
     theme: getInitialTheme(),
     activeNarrationText: '',
-    activeTab: 'globe', // 'globe' | 'maps' | 'timeline' | 'ships' | 'characters' | 'crew' | 'devil-fruits' | 'lore'
+    activeTab: 'characters', // 'characters' | 'globe' | 'maps' | 'ships' | 'devil-fruits' | 'crew' | 'timeline' | 'lore'
     eraFilter: 'egghead',
     showQuestDrawer: false,
     justUnlockedBanner: '',
@@ -74,6 +74,9 @@
     characterSearch: '',
     characterSort: 'story', // 'story' | 'bounty' | 'power'
     activeArtBanner: 'strawhat', // 'strawhat' | 'yonko' | 'warlords' | 'favorites' | 'egghead'
+    charDrawerCombat: false,
+    charDrawerClash: false,
+    charDrawerArt: false,
 
     selectedFruitId: 'gomu-nika',
     fruitCategoryFilter: 'All',
@@ -448,6 +451,36 @@
     }
   }
 
+  function syncWorkspaceLayout(tabId) {
+    const needsViewport =
+      tabId === 'globe' ||
+      tabId === 'maps' ||
+      tabId === 'timeline' ||
+      tabId === 'ships' ||
+      tabId === 'devil-fruits';
+
+    const portalMain = document.getElementById('portal-main');
+    const viewportSection = document.getElementById('viewport-section');
+    const mapSwitcher = document.getElementById('viewport-map-switcher');
+    const tiltBtn = document.getElementById('hud-tilt-x');
+
+    if (portalMain) {
+      portalMain.dataset.layout = needsViewport ? 'split' : 'full';
+    }
+    if (viewportSection) {
+      viewportSection.hidden = !needsViewport;
+    }
+    if (mapSwitcher) {
+      mapSwitcher.hidden = !(tabId === 'globe' || tabId === 'maps');
+    }
+    if (tiltBtn) {
+      tiltBtn.hidden = !(tabId === 'globe' || tabId === 'timeline');
+    }
+    if (engine3D && typeof engine3D.setViewportVisible === 'function') {
+      engine3D.setViewportVisible(needsViewport);
+    }
+  }
+
   function switchTab(tabId, silentSound) {
     stopAutoSail();
     soundFX.stopSpeech();
@@ -467,6 +500,8 @@
       btn.setAttribute('tabindex', isMatch ? '0' : '-1');
     });
 
+    syncWorkspaceLayout(tabId);
+
     const viewportBadge = document.getElementById('viewport-mode-badge');
     const viewportHint = document.getElementById('viewport-hint-text');
 
@@ -482,7 +517,7 @@
       if (viewportBadge) viewportBadge.textContent = '⛵ 3D WATER 7 SHIPWRIGHT DOCK';
       if (viewportHint) {
         viewportHint.textContent =
-          'Drag to rotate 360° • Toggle 🩻 Hull X-Ray Cutaway • Fire Gaon Cannon & Coup de Burst!';
+          'Drag to rotate 360° • Toggle X-Ray Cutaway • Fire Gaon Cannon & Coup de Burst!';
       }
     } else if (tabId === 'devil-fruits') {
       engine3D.setMode('devil-fruit');
@@ -506,13 +541,13 @@
         viewportHint.textContent =
           'Watch the Going Merry & Thousand Sunny sail shortest-arc routes across the 3D globe!';
       }
-    } else {
+    } else if (tabId === 'globe') {
       engine3D.setMode('globe');
       updateViewportSwitcherHighlight('3d-globe');
       if (viewportBadge) viewportBadge.textContent = '🌍 3D ONE PIECE PLANET GLOBE';
       if (viewportHint) {
         viewportHint.textContent =
-          'Drag to spin • Pinch/scroll to zoom • Toggle 🧭 45° X-Tilt below to match Crocus\'s map!';
+          'Drag to spin • Pinch/scroll to zoom • Click any glowing island pin!';
       }
     }
 
@@ -1465,135 +1500,16 @@
   }
 
   function renderCharactersInspector(container) {
-    // Era-filtered Key Visual Art Banners (never leaks Gear 5 / Wano / Egghead in beginner modes!)
-    const banners = [
-      {
-        key: 'strawhat',
-        era: 'east-blue',
-        btnText: '👒 Straw Hat Crew Art',
-        src: '/assets/characters/strawhat_crew_banner.jpg',
-        caption: '👒 Straw Hat Pirates Crew & Wanted Posters!'
-      },
-      {
-        key: 'warlords',
-        era: 'pre-timeskip',
-        btnText: '🔥 Brothers, Warlords & Marines',
-        src: '/assets/characters/warlords_marines_grid.jpg',
-        caption: '🔥 Ace, Sabo, Mihawk, Garp, Akainu, Blackbeard & Legends!'
-      },
-      {
-        key: 'favorites',
-        era: 'wano',
-        btnText: '⭐ Fan Favorites & Legends Sheet',
-        src: '/assets/characters/fan_favorites_grid.jpg',
-        caption: '⭐ Buggy, Crocodile, Doflamingo, Boa Hancock, Yamato, Oden, Kizaru & Aokiji!'
-      },
-      {
-        key: 'yonko',
-        era: 'wano',
-        btnText: '⚡ Gear 5 vs. Kaido & Emperors',
-        src: '/assets/characters/yonko_gear5_banner.jpg',
-        caption: '⚡ Wano Climax: Gear 5 Luffy vs. Kaido + Shanks, Whitebeard, Roger, Law & Kid!'
-      },
-      {
-        key: 'egghead',
-        era: 'egghead',
-        btnText: '🧠 Egghead & Elbaph Legends',
-        src: '/assets/characters/egghead_legends_grid.jpg',
-        caption: '🧠 Egghead & Elbaph: Dr. Vegapunk, Kuma, Jewelry Bonney, Saint Saturn, Awakened Lucci & Dorry/Brogy!'
-      }
-    ].filter((b) => isEraAllowed(b.era));
-
-    const activeBanner = banners.find((b) => b.key === state.activeArtBanner) || banners[0];
-    state.activeArtBanner = activeBanner.key;
-
-    const artGalleryBox = el('section', { className: 'art-gallery-banner' }, [
-      el(
-        'div',
-        { className: 'chip-row' },
-        banners.map((b) =>
-          el('button', {
-            type: 'button',
-            className: 'chip-btn' + (activeBanner.key === b.key ? ' active' : ''),
-            text: b.btnText,
-            onClick: () => {
-              state.activeArtBanner = b.key;
-              renderActivePanel();
-            }
-          })
-        )
-      ),
-      el('img', {
-        className: 'hero-art-banner-img',
-        src: activeBanner.src,
-        alt: activeBanner.caption
-      }),
-      el('p', { className: 'hero-art-caption', text: activeBanner.caption })
-    ]);
-
-    // Search + Sort Toolbar
-    const searchSortBar = el('div', { className: 'search-sort-bar' }, [
-      el('input', {
-        id: 'char-search-input',
-        type: 'search',
-        className: 'portal-search-input',
-        value: state.characterSearch,
-        placeholder: '🔍 Search 38 pirates, Marines, Giants, Laughs, or Devil Fruits...',
-        attrs: { 'aria-label': 'Search characters' },
-        onInput: (e) => {
-          state.characterSearch = e.target.value;
-          renderActivePanel();
-        }
-      }),
-      el(
-        'select',
-        {
-          className: 'portal-select',
-          attrs: { 'aria-label': 'Sort characters by' },
-          onChange: (e) => {
-            state.characterSort = e.target.value;
-            renderActivePanel();
-          }
-        },
-        [
-          { val: 'story', label: '📖 Sort: Crew / Story' },
-          { val: 'bounty', label: '💰 Sort: Highest Bounty' },
-          { val: 'power', label: '⚡ Sort: Highest Power' }
-        ].map((opt) =>
-          el('option', {
-            value: opt.val,
-            selected: state.characterSort === opt.val,
-            text: opt.label
-          })
-        )
-      )
-    ]);
-
     const factions = [
-      'All',
-      'Straw Hat Pirates',
-      'Four Emperors (Yonko)',
-      'Legends',
-      'Worst Generation',
-      'Marines & World Gov',
-      'Seven Warlords / Legends',
-      'Revolutionary Army'
+      { value: 'All', label: 'All Characters' },
+      { value: 'Straw Hat Pirates', label: '👒 Straw Hats' },
+      { value: 'Four Emperors (Yonko)', label: '👑 Emperors' },
+      { value: 'Worst Generation', label: '🔥 Worst Gen' },
+      { value: 'Marines & World Gov', label: '⚖️ Marines & Gov' },
+      { value: 'Seven Warlords / Legends', label: '🗡️ Warlords' },
+      { value: 'Revolutionary Army', label: '🐉 Revolutionaries' },
+      { value: 'Legends', label: '🏴‍☠️ Legends' }
     ];
-
-    const factionRow = el('div', { className: 'chip-row' });
-    factions.forEach((fac) => {
-      factionRow.appendChild(
-        el('button', {
-          type: 'button',
-          className: 'chip-btn' + (state.characterFactionFilter === fac ? ' active' : ''),
-          text: fac,
-          onClick: () => {
-            state.characterFactionFilter = fac;
-            renderActivePanel();
-          }
-        })
-      );
-    });
 
     const chars = getFilteredAndSortedCharacters();
     const activeChar =
@@ -1605,41 +1521,130 @@
       awardPoneglyph('wholeCake', "Big Mom's Treasure Room Rubbing");
     }
 
-    const charGrid = el('div', { className: 'character-roster-grid' });
-    if (chars.length === 0) {
-      charGrid.appendChild(
-        el('p', {
-          className: 'card-body-text',
-          text: 'No characters matched your search in this Spoiler Era! Try clearing search.'
+    // 1. Clean Single-Bar Search, Faction & Sort Header
+    const toolbarHeader = el('section', { className: 'char-dashboard-header' }, [
+      el('div', { className: 'char-search-toolbar' }, [
+        el('input', {
+          id: 'char-search-input',
+          type: 'search',
+          className: 'portal-search-input',
+          value: state.characterSearch,
+          placeholder: '🔍 Search 38 characters, bounties, Devil Fruits, or laughs...',
+          attrs: { 'aria-label': 'Search characters' },
+          onInput: (e) => {
+            state.characterSearch = e.target.value;
+            renderActivePanel();
+          }
+        }),
+        el(
+          'select',
+          {
+            className: 'portal-select',
+            attrs: { 'aria-label': 'Sort characters by' },
+            onChange: (e) => {
+              state.characterSort = e.target.value;
+              renderActivePanel();
+            }
+          },
+          [
+            { val: 'story', label: 'Sort: Crew & Story' },
+            { val: 'bounty', label: 'Sort: Highest Bounty' },
+            { val: 'power', label: 'Sort: Power Score' }
+          ].map((opt) =>
+            el('option', {
+              value: opt.val,
+              selected: state.characterSort === opt.val,
+              text: opt.label
+            })
+          )
+        ),
+        el('span', {
+          className: 'char-count-pill',
+          text: chars.length + (chars.length === 1 ? ' Character' : ' Characters')
         })
+      ]),
+      el(
+        'div',
+        { className: 'char-filter-pills' },
+        factions.map((fac) =>
+          el('button', {
+            type: 'button',
+            className:
+              'filter-pill-btn' + (state.characterFactionFilter === fac.value ? ' active' : ''),
+            text: fac.label,
+            onClick: () => {
+              state.characterFactionFilter = fac.value;
+              renderActivePanel();
+            }
+          })
+        )
+      )
+    ]);
+
+    // 2. Visual Portrait Gallery Grid (Left / Main Column)
+    const portraitGrid = el('div', { className: 'char-portrait-grid' });
+    if (chars.length === 0) {
+      portraitGrid.appendChild(
+        el('div', { className: 'empty-roster-state' }, [
+          el('p', {
+            className: 'card-body-text',
+            text: 'No characters matched your search in this Era. Clear your filter to view the crew.'
+          }),
+          el('button', {
+            type: 'button',
+            className: 'action-btn gold',
+            text: 'Reset Filters',
+            onClick: () => {
+              state.characterSearch = '';
+              state.characterFactionFilter = 'All';
+              renderActivePanel();
+            }
+          })
+        ])
       );
     } else {
       chars.forEach((ch) => {
-        charGrid.appendChild(
+        const cardPhoto =
+          ch.id === 'luffy' && ch.canUseGear5Photo && state.luffyUseGear5Photo
+            ? ch.altImage
+            : ch.image;
+        const bountyBadgeText =
+          ch.bounty > 0 ? '฿ ' + formatBerry(ch.bounty) : ch.bountyText || ch.tier;
+
+        portraitGrid.appendChild(
           el(
             'button',
             {
               type: 'button',
-              className: 'roster-btn' + (ch.id === activeChar.id ? ' selected' : ''),
+              className: 'char-portrait-card' + (ch.id === activeChar.id ? ' selected' : ''),
               onClick: () => {
                 state.selectedCharacterId = ch.id;
                 state.selectedBountyIndex = null;
                 soundFX.playLogPoseChime();
                 renderActivePanel();
+                if (window.innerWidth < 980) {
+                  const spot = document.getElementById('char-spotlight-card');
+                  if (spot) spot.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
               }
             },
             [
-              el('img', {
-                className: 'roster-avatar-img',
-                src: ch.image,
-                alt: ch.name
-              }),
-              el('div', { className: 'roster-text-col' }, [
-                el('span', { className: 'roster-name', text: ch.name }),
+              el('div', { className: 'char-card-img-wrap' }, [
+                el('img', {
+                  className: 'char-card-img',
+                  src: cardPhoto,
+                  alt: ch.name,
+                  loading: 'lazy'
+                }),
                 el('span', {
-                  className: 'roster-tier',
-                  text: 'PWR ' + ch.powerScore + ' • ' + ch.tier
+                  className: 'char-card-pwr-tag',
+                  text: String(ch.powerScore)
                 })
+              ]),
+              el('div', { className: 'char-card-body' }, [
+                el('span', { className: 'char-card-name', text: ch.name }),
+                el('span', { className: 'char-card-role', text: ch.role || ch.faction }),
+                el('span', { className: 'char-card-bounty', text: bountyBadgeText })
               ])
             ]
           )
@@ -1647,7 +1652,90 @@
       });
     }
 
-    // Bounty Evolution Milestone Stepper (era-filtered by getCharacterForEra!)
+    // Optional Collapsed Group Illustration Sheets at Bottom of Gallery Column
+    const banners = [
+      {
+        key: 'strawhat',
+        era: 'east-blue',
+        btnText: '👒 Straw Hats',
+        src: '/assets/characters/strawhat_crew_banner.jpg',
+        caption: 'Straw Hat Pirates Crew & Wanted Posters'
+      },
+      {
+        key: 'warlords',
+        era: 'pre-timeskip',
+        btnText: '🔥 Warlords & Marines',
+        src: '/assets/characters/warlords_marines_grid.jpg',
+        caption: 'Ace, Sabo, Mihawk, Garp, Akainu, Blackbeard & Legends'
+      },
+      {
+        key: 'favorites',
+        era: 'wano',
+        btnText: '⭐ Fan Favorites',
+        src: '/assets/characters/fan_favorites_grid.jpg',
+        caption: 'Buggy, Crocodile, Doflamingo, Boa Hancock, Yamato, Oden, Kizaru & Aokiji'
+      },
+      {
+        key: 'yonko',
+        era: 'wano',
+        btnText: '⚡ Emperors & Gear 5',
+        src: '/assets/characters/yonko_gear5_banner.jpg',
+        caption: 'Gear 5 Luffy vs. Kaido + Shanks, Whitebeard, Roger, Law & Kid'
+      },
+      {
+        key: 'egghead',
+        era: 'egghead',
+        btnText: '🧠 Egghead & Elbaph',
+        src: '/assets/characters/egghead_legends_grid.jpg',
+        caption: 'Dr. Vegapunk, Kuma, Jewelry Bonney, Saint Saturn, Lucci & Dorry/Brogy'
+      }
+    ].filter((b) => isEraAllowed(b.era));
+
+    const activeBanner = banners.find((b) => b.key === state.activeArtBanner) || banners[0];
+    state.activeArtBanner = activeBanner.key;
+
+    const artSheetDrawer = el('details', { className: 'clean-drawer art-sheet-drawer' }, [
+      el('summary', {
+        className: 'clean-drawer-summary',
+        text: '🖼️ Full-Cast Manga Art Sheets (' + banners.length + ' Plates)'
+      }),
+      el('div', { className: 'clean-drawer-body' }, [
+        el(
+          'div',
+          { className: 'chip-row' },
+          banners.map((b) =>
+            el('button', {
+              type: 'button',
+              className: 'chip-btn' + (activeBanner.key === b.key ? ' active' : ''),
+              text: b.btnText,
+              onClick: () => {
+                state.activeArtBanner = b.key;
+                state.charDrawerArt = true;
+                renderActivePanel();
+              }
+            })
+          )
+        ),
+        el('img', {
+          className: 'hero-art-banner-img',
+          src: activeBanner.src,
+          alt: activeBanner.caption,
+          loading: 'lazy'
+        }),
+        el('p', { className: 'hero-art-caption', text: activeBanner.caption })
+      ])
+    ]);
+    artSheetDrawer.open = Boolean(state.charDrawerArt);
+    artSheetDrawer.addEventListener('toggle', () => {
+      state.charDrawerArt = artSheetDrawer.open;
+    });
+
+    const galleryColumn = el('div', { className: 'char-gallery-column' }, [
+      portraitGrid,
+      artSheetDrawer
+    ]);
+
+    // 3. Sticky Right Spotlight Dossier (Clean Wanted Poster + Essential Facts + Progressive Drawers)
     const history = activeChar.bountyHistory || [];
     const maxIdx = Math.max(0, history.length - 1);
     const activeBountyIdx =
@@ -1660,25 +1748,64 @@
       text: activeChar.bountyText
     };
 
+    const posterPhotoUrl =
+      activeChar.canUseGear5Photo && state.luffyUseGear5Photo
+        ? activeChar.altImage
+        : activeChar.image;
+
+    const gear5ToggleBtn = activeChar.canUseGear5Photo
+      ? el('button', {
+          type: 'button',
+          className: 'chip-btn active full-width',
+          text: state.luffyUseGear5Photo
+            ? '👒 Switch Photo to Classic Straw Hat'
+            : '⚡ Switch Photo to Gear 5',
+          onClick: () => {
+            state.luffyUseGear5Photo = !state.luffyUseGear5Photo;
+            soundFX.playDrumsOfLiberation();
+            renderActivePanel();
+          }
+        })
+      : null;
+
+    const posterHeaderText = activeChar.posterHeader || 'WANTED';
+    const posterConditionText =
+      activeMilestone.condition || activeChar.posterCondition || 'DEAD OR ALIVE';
+    const posterFooterText = activeChar.posterFooter || '— MARINE';
+
+    // Collapsible Drawer 1: Haki, Signature Moves & Bounty Timeline
+    const hakiBadges =
+      activeChar.haki && activeChar.haki.length > 0
+        ? activeChar.haki.map((h) =>
+            el('span', {
+              className: 'haki-badge' + (h.advanced ? ' advanced' : ''),
+              text: (h.advanced ? '⚡ ADV: ' : '🛡️ ') + h.name
+            })
+          )
+        : [
+            el('span', {
+              className: 'haki-badge muted',
+              text: 'Martial Arts, Tech & Tactical Specialist'
+            })
+          ];
+
+    const moveItems = (activeChar.signatureMoves || []).map((m) =>
+      el('li', { className: 'fact-item', text: m })
+    );
+
     const bountyEvolutionBox =
       history.length > 1
         ? el('div', { className: 'bounty-evolution-box' }, [
-            el('div', { className: 'card-kicker-row' }, [
-              el('span', {
-                className: 'meta-label',
-                text:
-                  '📜 BOUNTY EVOLUTION (' +
-                  (activeBountyIdx + 1) +
-                  '/' +
-                  history.length +
-                  '): ' +
-                  activeMilestone.label
-              }),
-              el('span', {
-                className: 'coord-badge',
-                text: 'Slide through story arcs!'
-              })
-            ]),
+            el('span', {
+              className: 'meta-label',
+              text:
+                '📜 Bounty Timeline (' +
+                (activeBountyIdx + 1) +
+                '/' +
+                history.length +
+                '): ' +
+                activeMilestone.label
+            }),
             el('input', {
               type: 'range',
               className: 'bounty-range-slider',
@@ -1689,6 +1816,7 @@
               attrs: { 'aria-label': 'Scrub character bounty history across story arcs' },
               onInput: (e) => {
                 state.selectedBountyIndex = Number(e.target.value);
+                state.charDrawerCombat = true;
                 soundFX.playLogPoseChime();
                 renderActivePanel();
               }
@@ -1703,6 +1831,7 @@
                   text: m.bounty > 0 ? '฿ ' + formatBerry(m.bounty) : m.label,
                   onClick: () => {
                     state.selectedBountyIndex = idx;
+                    state.charDrawerCombat = true;
                     soundFX.playLogPoseChime();
                     renderActivePanel();
                   }
@@ -1712,112 +1841,154 @@
           ])
         : null;
 
-    const posterPhotoUrl =
-      activeChar.canUseGear5Photo && state.luffyUseGear5Photo
-        ? activeChar.altImage
-        : activeChar.image;
-
-    const gear5ToggleBtn = activeChar.canUseGear5Photo
-      ? el('button', {
-          type: 'button',
-          className: 'action-btn gold full-width',
-          text: state.luffyUseGear5Photo
-            ? '👒 Switch Wanted Photo to Classic Straw Hat Luffy'
-            : '⚡ Transform Wanted Photo to GEAR 5 (Sun God Nika)!',
-          onClick: () => {
-            state.luffyUseGear5Photo = !state.luffyUseGear5Photo;
-            soundFX.playDrumsOfLiberation();
-            renderActivePanel();
-          }
-        })
-      : null;
-
-    const hakiBadges =
-      activeChar.haki && activeChar.haki.length > 0
-        ? activeChar.haki.map((h) =>
-            el('span', {
-              className: 'haki-badge' + (h.advanced ? ' advanced' : ''),
-              text: (h.advanced ? '⚡ ADV: ' : '🛡️ ') + h.name
-            })
-          )
-        : [
-            el('span', {
-              className: 'haki-badge muted',
-              text: 'Tech / Martial Arts / Tactics Specialist (Pre-Haki or Science!)'
-            })
-          ];
-
-    const moveItems = (activeChar.signatureMoves || []).map((m) =>
-      el('li', { className: 'fact-item', text: m })
-    );
-
-    const radarCanvas = el('canvas', {
-      className: 'radar-canvas',
-      attrs: { width: '280', height: '240', 'aria-label': '6-axis character power radar chart' }
+    const combatDrawer = el('details', { className: 'clean-drawer' }, [
+      el('summary', {
+        className: 'clean-drawer-summary',
+        text: '⚡ Haki, Signature Techniques & Bounty History'
+      }),
+      el('div', { className: 'clean-drawer-body' }, [
+        bountyEvolutionBox,
+        el('h3', { className: 'section-subhead', text: '⚡ Haki Mastery' }),
+        el('div', { className: 'tag-wrap' }, hakiBadges),
+        el('h3', { className: 'section-subhead', text: '🔥 Signature Techniques' }),
+        el('ul', { className: 'fact-list' }, moveItems)
+      ])
+    ]);
+    combatDrawer.open = Boolean(state.charDrawerCombat);
+    combatDrawer.addEventListener('toggle', () => {
+      state.charDrawerCombat = combatDrawer.open;
     });
 
-    const posterHeaderText = activeChar.posterHeader || 'WANTED';
-    const posterConditionText =
-      activeMilestone.condition || activeChar.posterCondition || 'DEAD OR ALIVE';
-    const posterFooterText = activeChar.posterFooter || '— MARINE';
+    // Collapsible Drawer 2: 6-Axis Power Radar & 1v1 Clash Simulator
+    const radarCanvas = el('canvas', {
+      className: 'radar-canvas',
+      attrs: { width: '270', height: '225', 'aria-label': '6-axis character power radar chart' }
+    });
 
-    const wantedPoster = el('article', { className: 'wanted-poster-card' }, [
-      el('div', { className: 'wanted-parchment-frame' }, [
-        el('div', { className: 'wanted-header' }, [
-          el('span', { className: 'wanted-title', text: posterHeaderText })
-        ]),
-        el('div', { className: 'wanted-photo-box' }, [
-          el('img', {
-            className: 'wanted-portrait-img',
-            src: posterPhotoUrl,
-            alt: activeChar.name
-          })
-        ]),
-        el('div', { className: 'wanted-dead-or-alive', text: posterConditionText }),
-        el('div', { className: 'wanted-name-block' }, [
-          el('h2', { className: 'wanted-char-name', text: activeChar.name.toUpperCase() }),
-          el('p', { className: 'wanted-epithet', text: activeChar.epithet })
-        ]),
-        el('div', { className: 'wanted-bounty-row' }, [
-          el('span', { className: 'berry-symbol', text: '฿' }),
-          el('span', { className: 'bounty-amount', text: activeMilestone.text }),
-          el('span', { className: 'berry-dash', text: posterFooterText })
-        ])
-      ]),
-      bountyEvolutionBox,
-      gear5ToggleBtn,
-      el('div', { className: 'power-tier-strip' }, [
-        el('span', { className: 'tier-pill', text: 'Tier: ' + activeChar.tier }),
-        el('span', {
-          className: 'power-score-pill',
-          text: 'Overall Power Level: ' + activeChar.powerScore + ' / 100'
+    const allAllowedChars = DATA.characters
+      .filter((c) => isEraAllowed(c.era))
+      .map((c) => HELPERS.getCharacterForEra(c, state.eraFilter));
+    const rivalChar =
+      allAllowedChars.find((c) => c.id === state.rivalCharacterId) ||
+      allAllowedChars[Math.min(1, allAllowedChars.length - 1)] ||
+      allAllowedChars[0];
+
+    const rivalSelect = el(
+      'select',
+      {
+        className: 'portal-select full-width',
+        attrs: { 'aria-label': 'Select opponent for 1v1 comparison' },
+        onChange: (e) => {
+          state.rivalCharacterId = e.target.value;
+          state.charDrawerClash = true;
+          soundFX.playHakiBoom();
+          awardPoneglyph('quiz', 'Grand Line Tactical Clash Analysis');
+          renderActivePanel();
+        }
+      },
+      allAllowedChars.map((c) =>
+        el('option', {
+          value: c.id,
+          selected: c.id === rivalChar.id,
+          text: c.name + ' (PWR ' + c.powerScore + ')'
         })
-      ]),
-      el('div', { className: 'vivre-card-binder' }, [
-        el('div', { className: 'vivre-binder-header' }, [
-          el('strong', {
-            className: 'meta-label',
-            text: '🗂️ OFFICIAL VIVRE CARD & SBS COLLECTOR RECORD'
-          }),
+      )
+    );
+
+    const clashVerdict = computeClashVerdict(activeChar, rivalChar);
+
+    const clashDrawer = el('details', { className: 'clean-drawer' }, [
+      el('summary', {
+        className: 'clean-drawer-summary',
+        text: '⚔️ Power Radar & 1v1 Clash vs. ' + rivalChar.name
+      }),
+      el('div', { className: 'clean-drawer-body' }, [
+        el('div', { className: 'char-radar-col' }, [radarCanvas]),
+        el('div', { className: 'clash-faceoff-banner' }, [
+          el('div', { className: 'clash-fighter-box' }, [
+            el('img', {
+              className: 'clash-portrait-img gold-ring',
+              src: posterPhotoUrl,
+              alt: activeChar.name
+            }),
+            el('span', {
+              className: 'clash-fighter-tag',
+              text: activeChar.name + ' (' + activeChar.powerScore + ')'
+            })
+          ]),
+          el('span', { className: 'vs-badge', text: 'VS' }),
+          el('div', { className: 'clash-fighter-box' }, [
+            el('img', {
+              className: 'clash-portrait-img blue-ring',
+              src: rivalChar.image,
+              alt: rivalChar.name
+            }),
+            rivalSelect
+          ])
+        ]),
+        el('p', { className: 'clash-verdict-text', text: clashVerdict })
+      ])
+    ]);
+    clashDrawer.open = Boolean(state.charDrawerClash);
+    clashDrawer.addEventListener('toggle', () => {
+      state.charDrawerClash = clashDrawer.open;
+      if (clashDrawer.open) {
+        window.renderOnePieceRadarChart(radarCanvas, activeChar, rivalChar);
+      }
+    });
+
+    const spotlightCard = el(
+      'article',
+      { id: 'char-spotlight-card', className: 'wanted-poster-card spotlight-dossier-card' },
+      [
+        el('div', { className: 'card-kicker-row' }, [
           el('span', {
             className: 'vivre-id-pill',
-            text: 'VIVRE CARD #' + (activeChar.vivreId || '0001')
+            text: 'VIVRE ' + (activeChar.vivreId || '#0001') + ' • ' + activeChar.tier
           })
         ]),
+        el('div', { className: 'wanted-parchment-frame' }, [
+          el('div', { className: 'wanted-header' }, [
+            el('span', { className: 'wanted-title', text: posterHeaderText })
+          ]),
+          el('div', { className: 'wanted-photo-box' }, [
+            el('img', {
+              className: 'wanted-portrait-img',
+              src: posterPhotoUrl,
+              alt: activeChar.name
+            })
+          ]),
+          el('div', { className: 'wanted-dead-or-alive', text: posterConditionText }),
+          el('div', { className: 'wanted-name-block' }, [
+            el('h2', { className: 'wanted-char-name', text: activeChar.name.toUpperCase() }),
+            el('p', { className: 'wanted-epithet', text: activeChar.epithet })
+          ]),
+          el('div', { className: 'wanted-bounty-row' }, [
+            el('span', { className: 'berry-symbol', text: '฿' }),
+            el('span', { className: 'bounty-amount', text: activeMilestone.text }),
+            el('span', { className: 'berry-dash', text: posterFooterText })
+          ])
+        ]),
+        gear5ToggleBtn,
+        el('p', { className: 'card-body-text', text: activeChar.kidBio }),
         el('div', { className: 'vivre-meta-grid' }, [
+          el('div', { className: 'vivre-meta-cell' }, [
+            el('span', { className: 'vivre-meta-label', text: '🍇 Power / Style' }),
+            el('span', { className: 'vivre-meta-val', text: activeChar.devilFruit })
+          ]),
+          el('div', { className: 'vivre-meta-cell' }, [
+            el('span', { className: 'vivre-meta-label', text: '🌊 Origin' }),
+            el('span', { className: 'vivre-meta-val', text: activeChar.originSea || 'Grand Line' })
+          ]),
           el('div', { className: 'vivre-meta-cell' }, [
             el('span', { className: 'vivre-meta-label', text: '🎂 Birthday' }),
             el('span', { className: 'vivre-meta-val', text: activeChar.birthday || 'Unknown' })
           ]),
           el('div', { className: 'vivre-meta-cell' }, [
-            el('span', { className: 'vivre-meta-label', text: '🌊 Origin Sea' }),
-            el('span', { className: 'vivre-meta-val', text: activeChar.originSea || 'Grand Line' })
-          ]),
-          el('div', { className: 'vivre-meta-cell' }, [
             el('span', { className: 'vivre-meta-label', text: '🍖 Favorite Food' }),
             el('span', {
               className: 'vivre-meta-val',
-              text: activeChar.favoriteFood || 'Pirate Banquet Feast'
+              text: activeChar.favoriteFood || 'Pirate Banquet'
             })
           ])
         ]),
@@ -1835,7 +2006,7 @@
               el('button', {
                 type: 'button',
                 className: 'laugh-play-btn',
-                text: '🔊 Play Signature Laugh!',
+                text: '🔊 Laugh',
                 onClick: () => {
                   soundFX.playSignatureLaugh(
                     activeChar.laugh,
@@ -1852,93 +2023,21 @@
                 }
               })
             ])
-          : null
-      ]),
-      el('p', { className: 'card-body-text', text: activeChar.kidBio }),
-      el('div', { className: 'char-split-row' }, [
-        el('div', { className: 'char-details-col' }, [
-          el('h3', { className: 'section-subhead', text: '🍇 Devil Fruit / Fighting Style' }),
-          el('p', { className: 'df-highlight', text: activeChar.devilFruit }),
-          el('h3', { className: 'section-subhead', text: '⚡ Haki Mastery' }),
-          el('div', { className: 'tag-wrap' }, hakiBadges),
-          el('h3', { className: 'section-subhead', text: '🔥 Signature Techniques' }),
-          el('ul', { className: 'fact-list' }, moveItems)
-        ]),
-        el('div', { className: 'char-radar-col' }, [
-          el('h3', { className: 'section-subhead center', text: '📊 6-Axis Power Radar' }),
-          radarCanvas
-        ])
-      ])
-    ]);
-
-    // 1v1 Grand Line Clash Simulator (strictly era-projected!)
-    const allAllowedChars = DATA.characters
-      .filter((c) => isEraAllowed(c.era))
-      .map((c) => HELPERS.getCharacterForEra(c, state.eraFilter));
-    const rivalChar =
-      allAllowedChars.find((c) => c.id === state.rivalCharacterId) ||
-      allAllowedChars[Math.min(1, allAllowedChars.length - 1)] ||
-      allAllowedChars[0];
-
-    const rivalSelect = el(
-      'select',
-      {
-        className: 'portal-select',
-        attrs: { 'aria-label': 'Select opponent for 1v1 comparison' },
-        onChange: (e) => {
-          state.rivalCharacterId = e.target.value;
-          soundFX.playHakiBoom();
-          awardPoneglyph('quiz', 'Grand Line Tactical Clash Analysis');
-          renderActivePanel();
-        }
-      },
-      allAllowedChars.map((c) =>
-        el('option', {
-          value: c.id,
-          selected: c.id === rivalChar.id,
-          text: c.name + ' (PWR ' + c.powerScore + ')'
-        })
-      )
+          : null,
+        combatDrawer,
+        clashDrawer
+      ]
     );
 
-    const clashVerdict = computeClashVerdict(activeChar, rivalChar);
+    const spotlightColumn = el('div', { className: 'char-spotlight-column' }, [spotlightCard]);
 
-    const clashBox = el('section', { className: 'clash-simulator-card' }, [
-      el('h3', {
-        className: 'section-subhead',
-        text: '⚔️ 1v1 Grand Line Clash Simulator (Yellow vs. Blue on Radar)'
-      }),
-      el('div', { className: 'clash-faceoff-banner' }, [
-        el('div', { className: 'clash-fighter-box' }, [
-          el('img', {
-            className: 'clash-portrait-img gold-ring',
-            src: posterPhotoUrl,
-            alt: activeChar.name
-          }),
-          el('span', {
-            className: 'clash-fighter-tag',
-            text: '🟡 ' + activeChar.name + ' (PWR ' + activeChar.powerScore + ')'
-          })
-        ]),
-        el('span', { className: 'vs-badge', text: '⚡ VS ⚡' }),
-        el('div', { className: 'clash-fighter-box' }, [
-          el('img', {
-            className: 'clash-portrait-img blue-ring',
-            src: rivalChar.image,
-            alt: rivalChar.name
-          }),
-          rivalSelect
-        ])
-      ]),
-      el('p', { className: 'clash-verdict-text', text: clashVerdict })
+    const dashboardGrid = el('div', { className: 'char-dashboard-grid' }, [
+      galleryColumn,
+      spotlightColumn
     ]);
 
-    container.appendChild(artGalleryBox);
-    container.appendChild(searchSortBar);
-    container.appendChild(factionRow);
-    container.appendChild(charGrid);
-    container.appendChild(wantedPoster);
-    container.appendChild(clashBox);
+    container.appendChild(toolbarHeader);
+    container.appendChild(dashboardGrid);
 
     window.renderOnePieceRadarChart(radarCanvas, activeChar, rivalChar);
   }
@@ -2522,10 +2621,32 @@
 
     applyLanguageUI();
 
+    // Compact "More" Header Menu auto-dismiss on outside click or Escape
+    const moreMenu = document.getElementById('header-more-menu');
+    if (moreMenu) {
+      document.addEventListener('click', (e) => {
+        if (moreMenu.open && !moreMenu.contains(e.target)) {
+          moreMenu.open = false;
+        }
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && moreMenu.open) {
+          moreMenu.open = false;
+        }
+      });
+      const cookieSettingsBtn = document.getElementById('btn-cookie-settings');
+      if (cookieSettingsBtn) {
+        cookieSettingsBtn.addEventListener('click', () => {
+          moreMenu.open = false;
+        });
+      }
+    }
+
     // Road Poneglyph Quest Header Pill
     const questBtn = document.getElementById('poneglyph-status-btn');
     if (questBtn) {
       questBtn.addEventListener('click', () => {
+        if (moreMenu) moreMenu.open = false;
         state.showQuestDrawer = !state.showQuestDrawer;
         soundFX.playDenDenMushi();
         renderActivePanel();
@@ -2570,6 +2691,7 @@
           openMangaMapInViewport(key);
           if (state.activeTab !== 'maps') {
             state.activeTab = 'maps';
+            syncWorkspaceLayout('maps');
             tabBtns.forEach((nb) => {
               const isMatch = nb.getAttribute('data-tab-btn') === 'maps';
               nb.classList.toggle('active', isMatch);
@@ -2677,6 +2799,7 @@
       }
     });
 
+    syncWorkspaceLayout(state.activeTab);
     renderActivePanel();
   });
 })();
