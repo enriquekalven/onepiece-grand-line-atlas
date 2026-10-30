@@ -703,8 +703,7 @@
 
 .wanted-photo-box {
   width: 100%;
-  aspect-ratio: 1 / 1;
-  max-height: 240px;
+  aspect-ratio: 4 / 4.3;
   background-color: #1e1b18;
   border: 3px solid #451a03;
   border-radius: 0.25rem;
@@ -718,6 +717,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
+  display: block;
 }
 
 .wanted-dead-or-alive {
@@ -1568,7 +1569,7 @@ html[data-theme="light"] .filter-pill-btn.active {
 .char-card-img-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 4.4;
   background-color: var(--bg-elevated);
   overflow: hidden;
 }
@@ -1577,8 +1578,16 @@ html[data-theme="light"] .filter-pill-btn.active {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 16%;
+  object-position: center top;
   display: block;
+}
+
+.pill-avatar,
+.island-hero-portrait,
+.roster-avatar-img,
+.crew-deck-avatar,
+.clash-portrait-img {
+  object-position: 50% 8%;
 }
 
 .char-card-pwr-tag {

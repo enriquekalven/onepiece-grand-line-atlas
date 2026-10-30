@@ -375,5 +375,19 @@ test('11-Language i18n (with V3 Shipwright & Egghead labels), Signature Laugh Au
   const baseCss = fs.readFileSync(path.join(PUBLIC_DIR, 'styles', 'base.css'), 'utf8');
   assert.ok(baseCss.includes('html[data-theme="light"]'), 'Expected Light Theme CSS rules in base.css');
   assert.ok(baseCss.includes('.portal-main[data-layout="full"]'), 'Expected full-width layout CSS in base.css');
+  assert.ok(
+    /\.portal-nav\s*\{[\s\S]*?flex-shrink:\s*0/.test(baseCss),
+    'Expected .portal-nav to enforce flex-shrink: 0 so tab buttons never get covered/collapsed'
+  );
+
+  const componentsCss = fs.readFileSync(path.join(PUBLIC_DIR, 'styles', 'components.css'), 'utf8');
+  assert.ok(
+    /\.wanted-portrait-img\s*\{[\s\S]*?object-position:\s*center top/.test(componentsCss),
+    'Expected .wanted-portrait-img to anchor object-position: center top'
+  );
+  assert.ok(
+    /\.char-card-img\s*\{[\s\S]*?object-position:\s*center top/.test(componentsCss),
+    'Expected .char-card-img to anchor object-position: center top'
+  );
 });
 

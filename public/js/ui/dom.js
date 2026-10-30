@@ -23,7 +23,13 @@
     if (opts.placeholder) node.placeholder = opts.placeholder;
     if (opts.disabled) node.disabled = Boolean(opts.disabled);
     if (opts.selected) node.selected = Boolean(opts.selected);
-    if (opts.src) node.src = opts.src;
+    if (opts.src) {
+      const rawSrc = String(opts.src);
+      node.src =
+        rawSrc.startsWith('/assets/characters/') && !rawSrc.includes('?')
+          ? `${rawSrc}?v=4`
+          : rawSrc;
+    }
     if (opts.alt !== undefined) node.alt = opts.alt;
     if (opts.loading) node.loading = opts.loading;
     if (opts.title) node.title = opts.title;

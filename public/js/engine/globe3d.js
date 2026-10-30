@@ -166,12 +166,12 @@
       (data.characters || []).forEach((ch) => {
         if (ch.image) {
           const img = new Image();
-          img.src = ch.image;
+          img.src = ch.image.includes('?') ? ch.image : `${ch.image}?v=4`;
           this.charImages[ch.id] = img;
         }
         if (ch.altImage) {
           const altImg = new Image();
-          altImg.src = ch.altImage;
+          altImg.src = ch.altImage.includes('?') ? ch.altImage : `${ch.altImage}?v=4`;
           this.charImages[ch.id + '-alt'] = altImg;
         }
       });

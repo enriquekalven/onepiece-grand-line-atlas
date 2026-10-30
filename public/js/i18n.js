@@ -635,59 +635,139 @@
 
   var V3_UI_PATCH = {
     en: {
+      tabCharacters: '🏴‍☠️ Characters (38)',
+      tabWorld: '🌍 3D World',
+      tabMaps: '🗺️ Maps',
       tabShips: '⛵ Ships',
+      tabFruits: '🍇 Devil Fruits',
+      tabCrew: '⚓ Crew Builder',
+      tabTimeline: '🧭 Timeline',
+      tabLore: '📜 Lore & Quiz',
       spoilerPreTimeskip: '🌊 Pre-Timeskip (Ep 1–516)',
       spoilerEgghead: '🔥 Egghead (Latest)'
     },
     es: {
-      tabShips: '⛵ Astillero 3D (Sunny y Merry)',
+      brandTitle: 'ONE PIECE ATLAS',
+      brandSubtitle: 'Personajes, Recompensas Wanted, Vivre Cards y Mundo 3D',
+      spoilerLabel: '🛡️ Era:',
+      tabCharacters: '🏴‍☠️ Personajes (38)',
+      tabWorld: '🌍 Mundo 3D',
+      tabMaps: '🗺️ Mapas',
+      tabShips: '⛵ Barcos',
+      tabFruits: '🍇 Frutas',
+      tabCrew: '⚓ Tripulación',
+      tabTimeline: '🧭 Historia',
+      tabLore: '📜 Lore y Quiz',
       spoilerPreTimeskip: '🌊 Pre-Timeskip (Ep 1–516)',
-      spoilerEgghead: '🔥 Egghead y Elbaph (Ep 1086+)'
+      spoilerEgghead: '🔥 Egghead y Elbaph'
     },
     zh: {
-      tabShips: '⛵ 3D 船坞剖面图 (桑尼号)',
+      tabCharacters: '🏴‍☠️ 角色 (38)',
+      tabWorld: '🌍 3D 世界',
+      tabMaps: '🗺️ 海图',
+      tabShips: '⛵ 船坞',
+      tabFruits: '🍇 恶魔果实',
+      tabCrew: '⚓ 组建船队',
+      tabTimeline: '🧭 时间线',
+      tabLore: '📜 设定与问答',
       spoilerPreTimeskip: '🌊 顶上战争前 (第1–516集)',
-      spoilerEgghead: '🔥 蛋头岛与艾尔巴夫篇 (1086集+)'
+      spoilerEgghead: '🔥 蛋头岛与艾尔巴夫'
     },
     yue: {
-      tabShips: '⛵ 3D 船塢剖面圖 (烈陽號)',
+      tabCharacters: '🏴‍☠️ 角色 (38)',
+      tabWorld: '🌍 3D 世界',
+      tabMaps: '🗺️ 海圖',
+      tabShips: '⛵ 船塢',
+      tabFruits: '🍇 惡魔果實',
+      tabCrew: '⚓ 組建船隊',
+      tabTimeline: '🧭 時間線',
+      tabLore: '📜 設定與問答',
       spoilerPreTimeskip: '🌊 頂上戰爭前 (第1–516集)',
-      spoilerEgghead: '🔥 蛋頭島與艾爾巴夫篇 (1086集+)'
+      spoilerEgghead: '🔥 蛋頭島與艾爾巴夫'
     },
     ja: {
-      tabShips: '⛵ 3D 造船ドック (サニー号)',
+      tabCharacters: '🏴‍☠️ キャラ (38)',
+      tabWorld: '🌍 3D 世界',
+      tabMaps: '🗺️ 海図',
+      tabShips: '⛵ 船ドック',
+      tabFruits: '🍇 悪魔の実',
+      tabCrew: '⚓ 一味編成',
+      tabTimeline: '🧭 年表',
+      tabLore: '📜 考察＆クイズ',
       spoilerPreTimeskip: '🌊 マリンフォードまで (1〜516話)',
-      spoilerEgghead: '🔥 エッグヘッド＆エルバフ編 (1086話〜)'
+      spoilerEgghead: '🔥 エッグヘッド＆エルバフ'
     },
     ko: {
-      tabShips: '⛵ 3D 조선소 도크 (써니호)',
+      tabCharacters: '🏴‍☠️ 캐릭터 (38)',
+      tabWorld: '🌍 3D 월드',
+      tabMaps: '🗺️ 지도',
+      tabShips: '⛵ 선박 도크',
+      tabFruits: '🍇 악마의 열매',
+      tabCrew: '⚓ 해적단 편성',
+      tabTimeline: '🧭 타임라인',
+      tabLore: '📜 세계관 & 퀴즈',
       spoilerPreTimeskip: '🌊 정상전쟁까지 (1~516화)',
-      spoilerEgghead: '🔥 에그헤드 & 엘바프 (1086화+)'
+      spoilerEgghead: '🔥 에그헤드 & 엘바프'
     },
     pt: {
-      tabShips: '⛵ Estaleiro 3D (Sunny & Merry)',
+      tabCharacters: '🏴‍☠️ Personagens (38)',
+      tabWorld: '🌍 Mundo 3D',
+      tabMaps: '🗺️ Mapas',
+      tabShips: '⛵ Navios',
+      tabFruits: '🍇 Akuma no Mi',
+      tabCrew: '⚓ Tripulação',
+      tabTimeline: '🧭 História',
+      tabLore: '📜 Lore e Quiz',
       spoilerPreTimeskip: '🌊 Pré-Timeskip (Ep 1–516)',
-      spoilerEgghead: '🔥 Egghead e Elbaph (Ep 1086+)'
+      spoilerEgghead: '🔥 Egghead e Elbaph'
     },
     fr: {
-      tabShips: '⛵ Chantier Naval 3D (Sunny)',
+      tabCharacters: '🏴‍☠️ Personnages (38)',
+      tabWorld: '🌍 Monde 3D',
+      tabMaps: '🗺️ Cartes',
+      tabShips: '⛵ Navires',
+      tabFruits: '🍇 Fruits du Démon',
+      tabCrew: '⚓ Équipage',
+      tabTimeline: '🧭 Chronologie',
+      tabLore: '📜 Lore & Quiz',
       spoilerPreTimeskip: '🌊 Pré-Ellipse (Ép 1–516)',
-      spoilerEgghead: '🔥 Egghead & Elbaph (Ép 1086+)'
+      spoilerEgghead: '🔥 Egghead & Elbaph'
     },
     it: {
-      tabShips: '⛵ Cantiere Navale 3D (Sunny)',
+      tabCharacters: '🏴‍☠️ Personaggi (38)',
+      tabWorld: '🌍 Mondo 3D',
+      tabMaps: '🗺️ Mappe',
+      tabShips: '⛵ Navi',
+      tabFruits: '🍇 Frutti',
+      tabCrew: '⚓ Ciurma',
+      tabTimeline: '🧭 Cronologia',
+      tabLore: '📜 Lore e Quiz',
       spoilerPreTimeskip: '🌊 Pre-Timeskip (Ep 1–516)',
-      spoilerEgghead: '🔥 Egghead ed Elbaph (Ep 1086+)'
+      spoilerEgghead: '🔥 Egghead ed Elbaph'
     },
     de: {
-      tabShips: '⛵ 3D-Schiffswerft (Sunny)',
+      tabCharacters: '🏴‍☠️ Charaktere (38)',
+      tabWorld: '🌍 3D-Welt',
+      tabMaps: '🗺️ Karten',
+      tabShips: '⛵ Schiffe',
+      tabFruits: '🍇 Teufelsfrüchte',
+      tabCrew: '⚓ Crew-Planer',
+      tabTimeline: '🧭 Zeitlinie',
+      tabLore: '📜 Lore & Quiz',
       spoilerPreTimeskip: '🌊 Vor dem Zeitsprung (Ep 1–516)',
-      spoilerEgghead: '🔥 Egghead & Elbaph (Ep 1086+)'
+      spoilerEgghead: '🔥 Egghead & Elbaph'
     },
     ar: {
-      tabShips: '⛵ حوض السفن ثلاثي الأبعاد (ساني)',
+      tabCharacters: '🏴‍☠️ الشخصيات (38)',
+      tabWorld: '🌍 عالم 3D',
+      tabMaps: '🗺️ الخرائط',
+      tabShips: '⛵ السفن',
+      tabFruits: '🍇 فواكه الشيطان',
+      tabCrew: '⚓ الطاقم',
+      tabTimeline: '🧭 الأحداث',
+      tabLore: '📜 الأسرار والاختبار',
       spoilerPreTimeskip: '🌊 ما قبل السنتين (ح 1–516)',
-      spoilerEgghead: '🔥 إيغهيد وإلباف (ح 1086+)'
+      spoilerEgghead: '🔥 إيغهيد وإلباف'
     }
   };
 
