@@ -17,6 +17,9 @@
   const shipsAndVivre =
     root.OP_SHIPS_AND_VIVRE ||
     (typeof require === 'function' ? require('./ships.js') : {});
+  const i18nYue =
+    root.OP_I18N_YUE ||
+    (typeof require === 'function' ? require('./i18n-yue.js') : null);
 
   const ERA_ORDER = {
     'east-blue': 0,
@@ -34,8 +37,9 @@
   /**
    * Returns a spoiler-safe projection of a character for the active eraFilter,
    * plus only the bountyHistory milestones unlocked up to eraFilter.
+   * When lang === 'yue', returns authentic Cantonese localized fields with identical Spoiler Shield safety.
    */
-  function getCharacterForEra(rawChar, eraFilter) {
+  function getCharacterForEra(rawChar, eraFilter, lang) {
     if (!rawChar) return null;
     let snap = null;
     if (rawChar.eraSnapshots && eraFilter !== 'egghead') {
@@ -100,13 +104,17 @@
       if (eggheadFavoriteFood) projected.favoriteFood = eggheadFavoriteFood;
     }
 
+    if (lang === 'yue' && i18nYue) {
+      return i18nYue.localizeCharacter(projected, eraFilter, lang, isEraAllowed);
+    }
+
     return projected;
   }
 
-  function getDevilFruitForEra(rawFruit, eraFilter) {
+  function getDevilFruitForEra(rawFruit, eraFilter, lang) {
     if (!rawFruit) return null;
     const unlockedWano = isEraAllowed('wano', eraFilter);
-    return {
+    const projected = {
       ...rawFruit,
       name: unlockedWano && rawFruit.wanoTrueName ? rawFruit.wanoTrueName : rawFruit.name,
       englishName:
@@ -118,6 +126,41 @@
           : rawFruit.powerSummary,
       awakened: unlockedWano ? rawFruit.awakened : false
     };
+
+    if (lang === 'yue' && i18nYue) {
+      return i18nYue.localizeFruit(projected, eraFilter, lang, isEraAllowed);
+    }
+    return projected;
+  }
+
+  function getLocationForLang(loc, lang) {
+    if (lang === 'yue' && i18nYue) return i18nYue.localizeLocation(loc, lang);
+    return loc;
+  }
+
+  function getMapForLang(mapObj, lang) {
+    if (lang === 'yue' && i18nYue) return i18nYue.localizeMap(mapObj, lang);
+    return mapObj;
+  }
+
+  function getArcForLang(arc, lang) {
+    if (lang === 'yue' && i18nYue) return i18nYue.localizeArc(arc, lang);
+    return arc;
+  }
+
+  function getShipForLang(ship, lang) {
+    if (lang === 'yue' && i18nYue) return i18nYue.localizeShip(ship, lang);
+    return ship;
+  }
+
+  function getLoreForLang(topic, lang) {
+    if (lang === 'yue' && i18nYue) return i18nYue.localizeLore(topic, lang);
+    return topic;
+  }
+
+  function getQuizForLang(q, index, lang) {
+    if (lang === 'yue' && i18nYue) return i18nYue.localizeQuiz(q, index, lang);
+    return q;
   }
 
   /**
@@ -154,6 +197,12 @@
     isEraAllowed,
     getCharacterForEra,
     getDevilFruitForEra,
+    getLocationForLang,
+    getMapForLang,
+    getArcForLang,
+    getShipForLang,
+    getLoreForLang,
+    getQuizForLang,
     lerpLonDeg
   };
 

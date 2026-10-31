@@ -163,6 +163,7 @@
     if (!I18N) return;
     const meta = I18N.getLanguageMeta(state.lang);
     const t = I18N.getStrings(state.lang);
+    const isYue = state.lang === 'yue';
     document.documentElement.lang = meta.code;
     document.documentElement.dir = meta.dir || 'ltr';
 
@@ -177,8 +178,24 @@
     const brandSub = document.getElementById('portal-brand-subtitle');
     if (brandSub && t.brandSubtitle) brandSub.textContent = t.brandSubtitle;
 
+    const moreSummary = document.querySelector('#header-more-menu > summary');
+    if (moreSummary) {
+      moreSummary.textContent = t.moreMenuBtn || (isYue ? '⚙️ 更多設定' : '⚙️ More');
+    }
+
+    const langLabel = document.querySelector('label[for="lang-select"]');
+    if (langLabel) {
+      langLabel.textContent = t.langMenuLabel || (isYue ? '🌐 語言' : '🌐 Language');
+    }
+
     const voiceLabel = document.getElementById('narrator-voice-label');
     if (voiceLabel && t.voiceLabel) voiceLabel.textContent = t.voiceLabel;
+
+    const cookieSettingsBtn = document.getElementById('btn-cookie-settings');
+    if (cookieSettingsBtn) {
+      cookieSettingsBtn.textContent =
+        t.cookiePrefsBtn || (isYue ? '🍪 私隱及分析設定' : '🍪 Privacy Preferences');
+    }
 
     const soundBtn = document.getElementById('sound-toggle-btn');
     if (soundBtn) {
@@ -214,6 +231,30 @@
       if (tabMap[key]) btn.textContent = tabMap[key];
     });
 
+    const viewSwitchLabels = isYue
+      ? {
+          '3d-globe': '🌍 立體星球',
+          'grandline-sea-chart': '🗺️ 偉大航道',
+          'reverse-mountain-x-map': '⛰️ 顛倒山',
+          'vertical-cross-section-map': '☁️ 空島與深海',
+          'wano-onigashima-woodblock-map': '🐉 和之國',
+          'thousand-sunny-cutaway': '⛵ 千陽號藍圖',
+          'egghead-elbaph-map': '🧠 蛋頭島與艾爾巴夫'
+        }
+      : {
+          '3d-globe': '🌍 3D Globe',
+          'grandline-sea-chart': '🗺️ Grand Line',
+          'reverse-mountain-x-map': '⛰️ Reverse Mtn',
+          'vertical-cross-section-map': '☁️ Sky & Depth',
+          'wano-onigashima-woodblock-map': '🐉 Wano',
+          'thousand-sunny-cutaway': '⛵ Sunny Blueprint',
+          'egghead-elbaph-map': '🧠 Egghead & Elbaph'
+        };
+    document.querySelectorAll('[data-view-switch]').forEach((btn) => {
+      const key = btn.getAttribute('data-view-switch');
+      if (viewSwitchLabels[key]) btn.textContent = viewSwitchLabels[key];
+    });
+
     const btnZoomIn = document.getElementById('hud-zoom-in');
     if (btnZoomIn && t.zoomIn) btnZoomIn.textContent = t.zoomIn;
     const btnZoomOut = document.getElementById('hud-zoom-out');
@@ -242,6 +283,7 @@
     const cookieDecline = document.getElementById('btn-cookie-decline');
     if (cookieDecline && t.cookieDecline) cookieDecline.textContent = t.cookieDecline;
 
+    updatePoneglyphHeaderUI();
     applyThemeMode(state.theme);
     populateVoiceOptions();
     syncReadAloudButtonsUI(soundFX.isSpeaking);
@@ -250,6 +292,7 @@
   function enhanceInspectorWithI18nAndReadAloud(container) {
     if (!container || !I18N) return;
     const t = I18N.getStrings(state.lang);
+    const isYue = state.lang === 'yue';
 
     // Localize common section subheads inside the rendered inspector
     container.querySelectorAll('.section-subhead').forEach((sub) => {
@@ -270,20 +313,45 @@
     let firstNarration = '';
 
     cards.forEach((card) => {
+      const isVisibleForSpeech = (node) =>
+        !node.closest('details:not([open])');
+
       const titleEl = card.querySelector('.card-title, .wanted-char-name');
       const subEl = card.querySelector('.card-subtitle, .wanted-epithet');
-      const bodyEls = card.querySelectorAll('.card-body-text');
-      const factEls = card.querySelectorAll('.fact-item, .lore-step-block');
+      const bodyEls = Array.from(card.querySelectorAll('.card-body-text')).filter(isVisibleForSpeech);
+      const factEls = Array.from(card.querySelectorAll('.fact-item, .lore-step-block')).filter(
+        isVisibleForSpeech
+      );
 
       const title = titleEl ? titleEl.textContent.trim() : '';
       const subtitle = subEl ? subEl.textContent.trim() : '';
-      const summary = Array.from(bodyEls)
+      const summary = bodyEls
         .map((n) => n.textContent.trim())
         .filter(Boolean)
-        .join(' ');
-      const notes = Array.from(factEls)
-        .map((n) => n.textContent.trim())
+        .join(isYue ? ' ' : ' ');
+      let notes = factEls
+        .map((n) => {
+          if (n.classList && n.classList.contains('lore-step-block')) {
+            const h = n.querySelector('.lore-step-heading');
+            const d = n.querySelector('.lore-step-detail');
+            if (h && d) {
+              return h.textContent.trim() + (isYue ? '：' : ': ') + d.textContent.trim();
+            }
+          }
+          return n.textContent.trim();
+        })
         .filter(Boolean);
+
+      // For interactive Quiz cards without .card-body-text, include quiz options & explanation so Read Aloud reads the full quiz!
+      if (!summary && notes.length === 0) {
+        const quizOpts = Array.from(card.querySelectorAll('.quiz-opt-btn, .lesson-callout p'))
+          .filter(isVisibleForSpeech)
+          .map((n) => n.textContent.trim())
+          .filter(Boolean);
+        if (quizOpts.length > 0) {
+          notes = quizOpts;
+        }
+      }
 
       const narration = I18N.buildCardNarrationText(state.lang, {
         title: title,
@@ -334,12 +402,15 @@
 
   function getSafeCharacterById(charId) {
     const raw = DATA.characters.find((c) => c.id === charId) || DATA.characters[0];
-    return HELPERS.getCharacterForEra(raw, state.eraFilter);
+    return HELPERS.getCharacterForEra(raw, state.eraFilter, state.lang);
   }
 
   function getAllowedMaps() {
     const allowed = DATA.canonicalMaps.filter((m) => isEraAllowed(m.era));
-    return allowed.length > 0 ? allowed : [DATA.canonicalMaps[0]];
+    const list = allowed.length > 0 ? allowed : [DATA.canonicalMaps[0]];
+    return list.map((m) =>
+      HELPERS.getMapForLang ? HELPERS.getMapForLang(m, state.lang) : m
+    );
   }
 
   function getMapById(mapId) {
@@ -356,12 +427,19 @@
   function updatePoneglyphHeaderUI() {
     const btn = document.getElementById('poneglyph-status-btn');
     if (!btn) return;
+    const t = getStrings();
+    const isYue = state.lang === 'yue';
     const count = countPoneglyphs(state.poneglyphs);
     if (count === 4) {
-      btn.textContent = '👑 Laugh Tale Unlocked (4/4)!';
+      btn.textContent =
+        t.poneglyphUnlocked || (isYue ? '👑 拉夫德爾已解鎖 (4/4)！' : '👑 Laugh Tale Unlocked (4/4)!');
       btn.classList.add('quest-complete');
     } else {
-      btn.textContent = '🟥 Road Poneglyphs: ' + count + '/4';
+      btn.textContent =
+        (t.poneglyphCountPrefix || (isYue ? '🟥 路標歷史本文：' : '🟥 Road Poneglyphs:')) +
+        ' ' +
+        count +
+        '/4';
       btn.classList.remove('quest-complete');
     }
     syncLaughTaleEngineLock();
@@ -372,25 +450,35 @@
       state.poneglyphs[key] = true;
       persistState();
       const newCount = countPoneglyphs(state.poneglyphs);
+      const isYue = state.lang === 'yue';
       soundFX.playTreasureFanfare();
       if (newCount === 4) {
-        state.justUnlockedBanner =
-          '👑 ALL 4 ROAD PONEGLYPHS DECIPHERED! Crimson X-Coordinates to LAUGH TALE are now glowing on the 3D Planet Globe!';
+        state.justUnlockedBanner = isYue
+          ? '👑 四嚿路標歷史本文全部解讀完成！最終之島「拉夫德爾」嘅赤紅交叉座標已經喺立體星球上面發光解鎖！'
+          : '👑 ALL 4 ROAD PONEGLYPHS DECIPHERED! Crimson X-Coordinates to LAUGH TALE are now glowing on the 3D Planet Globe!';
       } else {
-        state.justUnlockedBanner =
-          '🟥 ROAD PONEGLYPH FOUND (' + newCount + '/4): ' + label + '!';
+        state.justUnlockedBanner = isYue
+          ? '🟥 發現路標歷史本文（' + newCount + '/4）：' + label + '！'
+          : '🟥 ROAD PONEGLYPH FOUND (' + newCount + '/4): ' + label + '!';
       }
       updatePoneglyphHeaderUI();
     }
   }
 
   function checkLocationPoneglyphs(locationId) {
+    const isYue = state.lang === 'yue';
     if (locationId === 'zou' || locationId === 'zou-zunesha') {
-      awardPoneglyph('zou', 'Whale Forest Rubbing on Zunesha');
+      awardPoneglyph('zou', isYue ? '象主鯨魚森林拓本' : 'Whale Forest Rubbing on Zunesha');
     } else if (locationId === 'whole-cake' || locationId === 'whole-cake-island') {
-      awardPoneglyph('wholeCake', "Brook's Secret Rubbing from Whole Cake Vault");
+      awardPoneglyph(
+        'wholeCake',
+        isYue ? '布魯克潛入萬國寶物庫拓印嘅拓本' : "Brook's Secret Rubbing from Whole Cake Vault"
+      );
     } else if (locationId === 'wano' || locationId === 'wano-country') {
-      awardPoneglyph('wano', 'Submerged Old Wano Rubbing beneath Mt. Fuji');
+      awardPoneglyph(
+        'wano',
+        isYue ? '沉睡喺舊和之國海底深處嘅拓本' : 'Submerged Old Wano Rubbing beneath Mt. Fuji'
+      );
     }
   }
 
@@ -430,12 +518,13 @@
 
   function openMangaMapInViewport(mapId) {
     stopAutoSail();
+    const isYue = state.lang === 'yue';
     const mapObj = getMapById(mapId);
     state.activeMapId = mapObj.id;
     state.selectedHotspotIndex = 0;
 
     if (mapObj.id === 'wano-onigashima-woodblock-map') {
-      awardPoneglyph('wano', 'Old Wano Cartography Scroll');
+      awardPoneglyph('wano', isYue ? '舊和之國浮世繪海圖卷軸' : 'Old Wano Cartography Scroll');
     }
 
     engine3D.setActiveMangaMap(mapObj.id);
@@ -446,8 +535,9 @@
     const viewportHint = document.getElementById('viewport-hint-text');
     if (viewportBadge) viewportBadge.textContent = '🗺️ ' + mapObj.badge.toUpperCase();
     if (viewportHint) {
-      viewportHint.textContent =
-        'Drag or Arrow-keys to pan • Scroll or pinch to zoom • Click any Character Pin!';
+      viewportHint.textContent = isYue
+        ? '拖動或用方向鍵平移海圖 • 滾輪放大縮小 • 點擊任何角色地標圖釘睇詳情！'
+        : 'Drag or Arrow-keys to pan • Scroll or pinch to zoom • Click any Character Pin!';
     }
   }
 
@@ -502,6 +592,7 @@
 
     syncWorkspaceLayout(tabId);
 
+    const isYue = state.lang === 'yue';
     const viewportBadge = document.getElementById('viewport-mode-badge');
     const viewportHint = document.getElementById('viewport-hint-text');
 
@@ -514,10 +605,13 @@
       engine3D.setSelectedDockChannel(state.selectedDockChannel);
       engine3D.setMode('ship-dock');
       updateViewportSwitcherHighlight('3d-globe');
-      if (viewportBadge) viewportBadge.textContent = '⛵ 3D WATER 7 SHIPWRIGHT DOCK';
+      if (viewportBadge) {
+        viewportBadge.textContent = isYue ? '⛵ 水之七島立體造船塢' : '⛵ 3D WATER 7 SHIPWRIGHT DOCK';
+      }
       if (viewportHint) {
-        viewportHint.textContent =
-          'Drag to rotate 360° • Toggle X-Ray Cutaway • Fire Gaon Cannon & Coup de Burst!';
+        viewportHint.textContent = isYue
+          ? '拖動 360 度旋轉船體 • 切換透視剖面 • 發射獅吼炮同風來噴射！'
+          : 'Drag to rotate 360° • Toggle X-Ray Cutaway • Fire Gaon Cannon & Coup de Burst!';
       }
     } else if (tabId === 'devil-fruits') {
       engine3D.setMode('devil-fruit');
@@ -526,28 +620,37 @@
         DATA.devilFruits.find((f) => f.id === state.selectedFruitId && isEraAllowed(f.era)) ||
         DATA.devilFruits[0];
       state.selectedFruitId = rawFruit.id;
-      engine3D.setDevilFruit(HELPERS.getDevilFruitForEra(rawFruit, state.eraFilter));
-      if (viewportBadge) viewportBadge.textContent = '🍇 3D DEVIL FRUIT HOLODECK';
+      engine3D.setDevilFruit(HELPERS.getDevilFruitForEra(rawFruit, state.eraFilter, state.lang));
+      if (viewportBadge) {
+        viewportBadge.textContent = isYue ? '🍇 立體惡魔果實全息圖鑑' : '🍇 3D DEVIL FRUIT HOLODECK';
+      }
       if (viewportHint) {
-        viewportHint.textContent =
-          'Drag or pinch to inspect the 3D Devil Fruit • Click "Unleash Power!" for 3D effects';
+        viewportHint.textContent = isYue
+          ? '拖動或縮放觀察立體惡魔果實 • 點擊「釋放能力特效！」體驗霸氣同果實爆發'
+          : 'Drag or pinch to inspect the 3D Devil Fruit • Click "Unleash Power!" for 3D effects';
       }
     } else if (tabId === 'timeline') {
       engine3D.setMode('timeline');
       updateViewportSwitcherHighlight('3d-globe');
       engine3D.focusTimelineArc(state.activeArcIndex);
-      if (viewportBadge) viewportBadge.textContent = '🧭 3D LOG POSE VOYAGE';
+      if (viewportBadge) {
+        viewportBadge.textContent = isYue ? '🧭 記錄指針立體航程' : '🧭 3D LOG POSE VOYAGE';
+      }
       if (viewportHint) {
-        viewportHint.textContent =
-          'Watch the Going Merry & Thousand Sunny sail shortest-arc routes across the 3D globe!';
+        viewportHint.textContent = isYue
+          ? '追蹤黃金梅利號同千陽號橫越偉大航道嘅立體航線！'
+          : 'Watch the Going Merry & Thousand Sunny sail shortest-arc routes across the 3D globe!';
       }
     } else if (tabId === 'globe') {
       engine3D.setMode('globe');
       updateViewportSwitcherHighlight('3d-globe');
-      if (viewportBadge) viewportBadge.textContent = '🌍 3D ONE PIECE PLANET GLOBE';
+      if (viewportBadge) {
+        viewportBadge.textContent = isYue ? '🌍 海賊王立體星球儀' : '🌍 3D ONE PIECE PLANET GLOBE';
+      }
       if (viewportHint) {
-        viewportHint.textContent =
-          'Drag to spin • Pinch/scroll to zoom • Click any glowing island pin!';
+        viewportHint.textContent = isYue
+          ? '拖動旋轉星球 • 滾輪放大縮小 • 點擊任何發光島嶼地標！'
+          : 'Drag to spin • Pinch/scroll to zoom • Click any glowing island pin!';
       }
     }
 
@@ -555,6 +658,7 @@
   }
 
   function renderQuestBannerAndDrawer(container) {
+    const isYue = state.lang === 'yue';
     if (state.justUnlockedBanner) {
       const toast = el('div', { className: 'poneglyph-toast-banner' }, [
         el('span', { text: state.justUnlockedBanner }),
@@ -562,7 +666,7 @@
           type: 'button',
           className: 'toast-dismiss-btn',
           text: '✕',
-          attrs: { 'aria-label': 'Dismiss treasure notification' },
+          attrs: { 'aria-label': isYue ? '關閉尋寶提示' : 'Dismiss treasure notification' },
           onClick: () => {
             state.justUnlockedBanner = '';
             renderActivePanel();
@@ -577,9 +681,13 @@
     const quests = [
       {
         key: 'zou',
-        title: '1. Whale Forest Rubbing (Zou)',
-        hint: 'Visit Zou (Zunesha) on the 3D Globe or reach Zou on the Log Pose Timeline!',
-        actionText: isEraAllowed('wano') ? '🐘 Fly to Zou' : '🔒 Unlocks in Wano Mode',
+        title: isYue ? '1. 佐烏鯨魚森林拓本' : '1. Whale Forest Rubbing (Zou)',
+        hint: isYue
+          ? '喺立體星球造訪佐烏（象主），或者喺時間線航行到佐烏篇！'
+          : 'Visit Zou (Zunesha) on the 3D Globe or reach Zou on the Log Pose Timeline!',
+        actionText: isEraAllowed('wano')
+          ? (isYue ? '🐘 飛往佐烏' : '🐘 Fly to Zou')
+          : (isYue ? '🔒 和之國進度解鎖' : '🔒 Unlocks in Wano Mode'),
         canJump: isEraAllowed('wano'),
         onJump: () => {
           state.selectedLocationId = 'zou';
@@ -590,9 +698,13 @@
       },
       {
         key: 'wholeCake',
-        title: "2. Big Mom's Vault Rubbing (Whole Cake)",
-        hint: 'Inspect Whole Cake Island or open Katakuri / Big Mom Wanted Poster!',
-        actionText: isEraAllowed('wano') ? '🍰 Fly to Whole Cake' : '🔒 Unlocks in Wano Mode',
+        title: isYue ? '2. 萬國大媽寶物庫拓本' : "2. Big Mom's Vault Rubbing (Whole Cake)",
+        hint: isYue
+          ? '查看萬國蛋糕島，或者打開卡塔庫栗／大媽嘅懸賞令！'
+          : 'Inspect Whole Cake Island or open Katakuri / Big Mom Wanted Poster!',
+        actionText: isEraAllowed('wano')
+          ? (isYue ? '🍰 飛往萬國蛋糕島' : '🍰 Fly to Whole Cake')
+          : (isYue ? '🔒 和之國進度解鎖' : '🔒 Unlocks in Wano Mode'),
         canJump: isEraAllowed('wano'),
         onJump: () => {
           state.selectedLocationId = 'whole-cake';
@@ -603,9 +715,11 @@
       },
       {
         key: 'wano',
-        title: '3. Submerged Old Wano Rubbing',
-        hint: 'Inspect Wano Country, open the Wano Map, or Unleash any 3D Devil Fruit!',
-        actionText: '🍇 Unleash a 3D Fruit',
+        title: isYue ? '3. 舊和之國海底深處拓本' : '3. Submerged Old Wano Rubbing',
+        hint: isYue
+          ? '查看和之國、打開和之國海圖，或者釋放任何一粒立體惡魔果實能力！'
+          : 'Inspect Wano Country, open the Wano Map, or Unleash any 3D Devil Fruit!',
+        actionText: isYue ? '🍇 釋放立體惡魔果實' : '🍇 Unleash a 3D Fruit',
         canJump: true,
         onJump: () => {
           switchTab('devil-fruits');
@@ -613,9 +727,11 @@
       },
       {
         key: 'quiz',
-        title: '4. Navigator Scholar Trial',
-        hint: 'Answer any One Piece Quiz question right or run a 1v1 Haki Clash!',
-        actionText: '📜 Go to Quiz & Haki Dojo',
+        title: isYue ? '4. 航海學者問答試煉' : '4. Navigator Scholar Trial',
+        hint: isYue
+          ? '答啱任何一條海賊王問答題，或者進行一場一對一霸氣模擬對決！'
+          : 'Answer any One Piece Quiz question right or run a 1v1 Haki Clash!',
+        actionText: isYue ? '📜 前往問答與霸氣道場' : '📜 Go to Quiz & Haki Dojo',
         canJump: true,
         onJump: () => {
           switchTab('lore');
@@ -628,13 +744,15 @@
       el('div', { className: 'card-kicker-row' }, [
         el('span', {
           className: 'badge-pill crimson',
-          text: '🟥 ROAD PONEGLYPH TREASURE HUNT (' + count + '/4)'
+          text: isYue
+            ? '🟥 路標歷史本文尋寶任務（' + count + '/4）'
+            : '🟥 ROAD PONEGLYPH TREASURE HUNT (' + count + '/4)'
         }),
         el('div', { className: 'chip-row' }, [
           el('button', {
             type: 'button',
             className: 'chip-btn',
-            text: '🔄 Reset Quest',
+            text: isYue ? '🔄 重設尋寶進度' : '🔄 Reset Quest',
             onClick: () => {
               state.poneglyphs = { zou: false, wholeCake: false, wano: false, quiz: false };
               state.justUnlockedBanner = '';
@@ -646,7 +764,7 @@
           el('button', {
             type: 'button',
             className: 'chip-btn active',
-            text: 'Close',
+            text: isYue ? '關閉' : 'Close',
             onClick: () => {
               state.showQuestDrawer = false;
               renderActivePanel();
@@ -658,8 +776,12 @@
         className: 'card-body-text',
         text:
           count === 4
-            ? '🎉 AMAZING! All 4 Crimson Road Poneglyphs are yours! Switch to the 3D Globe (in Wano Spoiler Mode) to see the 4 red laser beams cross over Laugh Tale!'
-            : 'Find all 4 Crimson Road Poneglyphs hidden across the portal to unlock Gol D. Roger\'s final island, Laugh Tale, on the 3D Globe!'
+            ? (isYue
+                ? '🎉 太勁喇！你已經集齊全部四嚿赤紅路標歷史本文！切換去「立體世界」（和之國或蛋頭島進度）即可見到四道紅光交匯鎖定拉夫德爾！'
+                : '🎉 AMAZING! All 4 Crimson Road Poneglyphs are yours! Switch to the 3D Globe (in Wano Spoiler Mode) to see the 4 red laser beams cross over Laugh Tale!')
+            : (isYue
+                ? '集齊隱藏喺圖鑑入面嘅四嚿赤紅「路標歷史本文」，即可喺立體星球解鎖海賊王羅傑抵達嘅最終之島——拉夫德爾！'
+                : "Find all 4 Crimson Road Poneglyphs hidden across the portal to unlock Gol D. Roger's final island, Laugh Tale, on the 3D Globe!")
       }),
       el(
         'div',
@@ -716,6 +838,7 @@
     } else if (state.activeTab === 'crew') {
       window.OP_CREW_BUILDER.renderCrewBuilderTab(container, {
         eraFilter: state.eraFilter,
+        lang: state.lang,
         budgetMode: state.budgetMode,
         crewDraft: state.crewDraft,
         setBudgetMode: (mode) => {
@@ -759,42 +882,44 @@
   // =========================================================================
   function getFilteredLocations() {
     const allComplete = countPoneglyphs(state.poneglyphs) === 4;
-    return DATA.worldLocations.filter((loc) => {
-      if (!isEraAllowed(loc.era)) return false;
-      if (loc.id === 'laugh-tale' && !allComplete) {
-        // Still allow seeing Laugh Tale in Wano mode or mark it mysterious! Let's keep it inspectable in Wano mode,
-        // and show a Poneglyph lock hint if <4 rubbings!
-      }
-      if (state.globeCategoryFilter !== 'All' && loc.category !== state.globeCategoryFilter) {
-        return false;
-      }
-      return true;
-    });
+    return DATA.worldLocations
+      .filter((loc) => {
+        if (!isEraAllowed(loc.era)) return false;
+        if (loc.id === 'laugh-tale' && !allComplete) {
+          // Keep Laugh Tale inspectable in Wano mode with Poneglyph lock hint if <4 rubbings
+        }
+        if (state.globeCategoryFilter !== 'All' && loc.category !== state.globeCategoryFilter) {
+          return false;
+        }
+        return true;
+      })
+      .map((loc) => (HELPERS.getLocationForLang ? HELPERS.getLocationForLang(loc, state.lang) : loc));
   }
 
   function renderGlobeInspector(container) {
+    const isYue = state.lang === 'yue';
     const categories = [
-      'All',
-      'Four Blues',
-      'World Geography',
-      'Grand Line — Paradise',
-      'Grand Line — New World',
-      'Sky Sea',
-      'Undersea Gateway'
+      { value: 'All', label: isYue ? '全部海域' : 'All' },
+      { value: 'Four Blues', label: isYue ? '四海' : 'Four Blues' },
+      { value: 'World Geography', label: isYue ? '世界地理奇觀' : 'World Geography' },
+      { value: 'Grand Line — Paradise', label: isYue ? '偉大航道・樂園' : 'Grand Line — Paradise' },
+      { value: 'Grand Line — New World', label: isYue ? '偉大航道・新世界' : 'Grand Line — New World' },
+      { value: 'Sky Sea', label: isYue ? '一萬米空島' : 'Sky Sea' },
+      { value: 'Undersea Gateway', label: isYue ? '一萬米深海' : 'Undersea Gateway' }
     ];
 
     const filterRow = el('div', {
       className: 'chip-row',
-      attrs: { role: 'group', 'aria-label': 'Filter world regions' }
+      attrs: { role: 'group', 'aria-label': isYue ? '篩選世界海域' : 'Filter world regions' }
     });
     categories.forEach((cat) => {
       filterRow.appendChild(
         el('button', {
           type: 'button',
-          className: 'chip-btn' + (state.globeCategoryFilter === cat ? ' active' : ''),
-          text: cat,
+          className: 'chip-btn' + (state.globeCategoryFilter === cat.value ? ' active' : ''),
+          text: cat.label,
           onClick: () => {
-            state.globeCategoryFilter = cat;
+            state.globeCategoryFilter = cat.value;
             renderActivePanel();
           }
         })
@@ -802,14 +927,17 @@
     });
 
     const locations = getFilteredLocations();
+    const fallbackLoc = HELPERS.getLocationForLang
+      ? HELPERS.getLocationForLang(DATA.worldLocations[0], state.lang)
+      : DATA.worldLocations[0];
     const activeLoc =
       locations.find((l) => l.id === state.selectedLocationId) ||
       locations[0] ||
-      DATA.worldLocations[0];
+      fallbackLoc;
 
     const locationGrid = el('div', { className: 'location-pill-grid' });
     locations.forEach((loc) => {
-      const shortTitle = loc.name.split(' (')[0];
+      const shortTitle = loc.name.split(' (')[0].split('（')[0];
       const heroChar = getSafeCharacterById(loc.heroCharacterId);
       const isLaughTaleLocked = loc.id === 'laugh-tale' && countPoneglyphs(state.poneglyphs) < 4;
 
@@ -847,7 +975,9 @@
     const factItems = (
       isLockedLT
         ? [
-            'Collect all 4 Crimson Road Poneglyphs (click the red badge in the top bar!) to project the 4 laser coordinates to Laugh Tale on the 3D Globe!',
+            isYue
+              ? '集齊全部四嚿赤紅路標歷史本文（打開頂部「更多設定」嘅尋寶任務），即可喺立體星球投射四道紅光解鎖拉夫德爾！'
+              : 'Collect all 4 Crimson Road Poneglyphs (click the red badge in the top bar!) to project the 4 laser coordinates to Laugh Tale on the 3D Globe!',
             ...activeLoc.keyFacts.slice(0, 1)
           ]
         : activeLoc.keyFacts
@@ -855,15 +985,18 @@
 
     const detailCard = el('article', { className: 'feature-card' }, [
       el('div', { className: 'card-kicker-row' }, [
-        el('span', { className: 'badge-pill', text: activeLoc.category }),
+        el('span', {
+          className: 'badge-pill',
+          text: activeLoc.categoryDisplay || activeLoc.category
+        }),
         el('span', {
           className: 'coord-badge',
           text:
             activeLoc.altitude > 0.1
-              ? '☁️ +10,000m Sky Sea'
+              ? (isYue ? '☁️ 高空一萬米白白海' : '☁️ +10,000m Sky Sea')
               : activeLoc.altitude < -0.05
-              ? '🫧 -10,000m Undersea'
-              : '🌊 Sea Level'
+              ? (isYue ? '🫧 海底一萬米深海' : '🫧 -10,000m Undersea')
+              : (isYue ? '🌊 海平面' : '🌊 Sea Level')
         })
       ]),
       el('div', { className: 'island-hero-header' }, [
@@ -878,12 +1011,17 @@
           el('button', {
             type: 'button',
             className: 'inline-link-btn',
-            text:
-              '🏴‍☠️ Featured Pirate/Hero: ' +
-              heroChar.name +
-              ' (฿ ' +
-              heroChar.bountyText +
-              ') → Open Wanted Poster',
+            text: isYue
+              ? '🏴‍☠️ 代表人物：' +
+                heroChar.name +
+                '（懸賞金 ฿ ' +
+                heroChar.bountyText +
+                '）→ 查看懸賞令'
+              : '🏴‍☠️ Featured Pirate/Hero: ' +
+                heroChar.name +
+                ' (฿ ' +
+                heroChar.bountyText +
+                ') → Open Wanted Poster',
             onClick: () => {
               state.selectedCharacterId = heroChar.id;
               state.selectedBountyIndex = null;
@@ -893,18 +1031,21 @@
         ])
       ]),
       el('p', { className: 'card-body-text', text: activeLoc.summary }),
-      el('h3', { className: 'section-subhead', text: '🧭 Explorer Notes for Kids' }),
+      el('h3', {
+        className: 'section-subhead',
+        text: isYue ? '✨ 小航海家趣味筆記' : '🧭 Explorer Notes for Kids'
+      }),
       el('ul', { className: 'fact-list' }, factItems),
       el('div', { className: 'embedded-map-preview' }, [
         el('div', { className: 'card-kicker-row' }, [
           el('strong', {
             className: 'section-subhead',
-            text: '🗺️ Canonical Manga/Anime Map: ' + linkedMap.title
+            text: (isYue ? '🗺️ 對應漫畫海圖：' : '🗺️ Canonical Manga/Anime Map: ') + linkedMap.title
           }),
           el('button', {
             type: 'button',
             className: 'action-btn gold compact',
-            text: '🔍 Open Map in Main Viewport',
+            text: isYue ? '🔍 喺主視窗打開海圖' : '🔍 Open Map in Main Viewport',
             onClick: () => {
               state.activeMapId = linkedMap.id;
               switchTab('maps');
@@ -932,6 +1073,7 @@
   // TAB 2: CANONICAL MANGA & ANIME MAPS ATLAS INSPECTOR
   // =========================================================================
   function renderMangaMapsInspector(container) {
+    const isYue = state.lang === 'yue';
     const allowedMaps = getAllowedMaps();
     const activeMap = getMapById(state.activeMapId);
     state.activeMapId = activeMap.id;
@@ -1009,7 +1151,7 @@
         el('button', {
           type: 'button',
           className: 'action-btn secondary compact',
-          text: '🌍 Switch Back to 3D Spinning Globe',
+          text: isYue ? '🌍 返回立體旋轉星球' : '🌍 Switch Back to 3D Spinning Globe',
           onClick: () => {
             engine3D.setMode('globe');
             updateViewportSwitcherHighlight('3d-globe');
@@ -1020,7 +1162,9 @@
       el('p', { className: 'card-body-text', text: activeMap.description }),
       el('h3', {
         className: 'section-subhead',
-        text: '📍 Click Any Pin on the Map (or Below) to Inspect:'
+        text: isYue
+          ? '📍 點擊海圖上嘅圖釘（或下方按鈕）查看詳情：'
+          : '📍 Click Any Pin on the Map (or Below) to Inspect:'
       }),
       hotspotGrid,
       activeHotspot
@@ -1038,7 +1182,7 @@
                   el('button', {
                     type: 'button',
                     className: 'inline-link-btn',
-                    text: '🌍 Fly to Location on 3D Globe',
+                    text: isYue ? '🌍 喺立體星球飛往此地' : '🌍 Fly to Location on 3D Globe',
                     onClick: () => {
                       state.selectedLocationId = activeHotspot.locationId;
                       checkLocationPoneglyphs(activeHotspot.locationId);
@@ -1049,7 +1193,9 @@
                   el('button', {
                     type: 'button',
                     className: 'inline-link-btn',
-                    text: '🏴‍☠️ Open ' + hsChar.name + ' Wanted Poster',
+                    text: isYue
+                      ? '🏴‍☠️ 查看' + hsChar.name + '懸賞令'
+                      : '🏴‍☠️ Open ' + hsChar.name + ' Wanted Poster',
                     onClick: () => {
                       state.selectedCharacterId = hsChar.id;
                       state.selectedBountyIndex = null;
@@ -1071,10 +1217,13 @@
   // TAB 3: 3D LOG POSE TIMELINE VOYAGE
   // =========================================================================
   function getFilteredArcs() {
-    return DATA.timelineArcs.filter((arc) => isEraAllowed(arc.era));
+    return DATA.timelineArcs
+      .filter((arc) => isEraAllowed(arc.era))
+      .map((arc) => (HELPERS.getArcForLang ? HELPERS.getArcForLang(arc, state.lang) : arc));
   }
 
   function renderTimelineInspector(container) {
+    const isYue = state.lang === 'yue';
     const arcs = getFilteredArcs();
     if (state.activeArcIndex >= arcs.length) {
       state.activeArcIndex = Math.max(0, arcs.length - 1);
@@ -1088,7 +1237,7 @@
     const prevBtn = el('button', {
       type: 'button',
       className: 'action-btn secondary',
-      text: '⬅ Previous Island',
+      text: isYue ? '⬅ 上一站島嶼' : '⬅ Previous Island',
       disabled: state.activeArcIndex === 0,
       onClick: () => {
         stopAutoSail();
@@ -1104,7 +1253,9 @@
     const autoSailBtn = el('button', {
       type: 'button',
       className: 'action-btn gold',
-      text: state.autoSailInterval ? '⏸ Pause Voyage' : '⛵ Auto-Sail Grand Line',
+      text: state.autoSailInterval
+        ? (isYue ? '⏸ 暫停航行' : '⏸ Pause Voyage')
+        : (isYue ? '⛵ 自動航行偉大航道' : '⛵ Auto-Sail Grand Line'),
       onClick: () => {
         if (state.autoSailInterval) {
           stopAutoSail();
@@ -1125,7 +1276,7 @@
     const nextBtn = el('button', {
       type: 'button',
       className: 'action-btn primary',
-      text: 'Next Island ➡',
+      text: isYue ? '下一站島嶼 ➡' : 'Next Island ➡',
       disabled: state.activeArcIndex >= arcs.length - 1,
       onClick: () => {
         stopAutoSail();
@@ -1154,7 +1305,7 @@
             'step-node' +
             (idx === state.activeArcIndex ? ' active' : '') +
             (idx < state.activeArcIndex ? ' completed' : ''),
-          title: arc.saga + ': ' + arc.title,
+          title: arc.saga + '：' + arc.title,
           onClick: () => {
             stopAutoSail();
             state.activeArcIndex = idx;
@@ -1176,7 +1327,7 @@
     const crewTags =
       currentArc.crewJoined.length > 0
         ? currentArc.crewJoined.map((name) => el('span', { className: 'crew-tag', text: '+ ' + name }))
-        : [el('span', { className: 'crew-tag muted', text: 'Crew Holds Strong' })];
+        : [el('span', { className: 'crew-tag muted', text: isYue ? '全員齊心協力航行' : 'Crew Holds Strong' })];
 
     const arcPortraitSrc =
       currentArc.id === 'onigashima-gear5' && isEraAllowed('wano')
@@ -1187,13 +1338,14 @@
       el('div', { className: 'card-kicker-row' }, [
         el('span', {
           className: 'badge-pill',
-          text:
-            'Log Pose Stop ' +
-            (state.activeArcIndex + 1) +
-            ' of ' +
-            arcs.length +
-            ' • ' +
-            currentArc.saga
+          text: isYue
+            ? '記錄指針第 ' + (state.activeArcIndex + 1) + ' / ' + arcs.length + ' 站 • ' + currentArc.saga
+            : 'Log Pose Stop ' +
+              (state.activeArcIndex + 1) +
+              ' of ' +
+              arcs.length +
+              ' • ' +
+              currentArc.saga
         }),
         el('span', { className: 'coord-badge', text: '⛵ ' + currentArc.ship })
       ]),
@@ -1207,29 +1359,37 @@
           el('h2', { className: 'card-title', text: currentArc.title }),
           el('p', {
             className: 'card-subtitle',
-            text: currentArc.episodes + ' • Bounty Milestone: ฿ ' + currentArc.bountyMilestone
+            text: isYue
+              ? currentArc.episodes + ' • 懸賞金里程碑：฿ ' + currentArc.bountyMilestone
+              : currentArc.episodes + ' • Bounty Milestone: ฿ ' + currentArc.bountyMilestone
           })
         ])
       ]),
       el('p', { className: 'card-body-text', text: currentArc.storySummary }),
       el('div', { className: 'meta-two-col' }, [
         el('div', { className: 'meta-box' }, [
-          el('span', { className: 'meta-label', text: 'Crewmates Joined' }),
+          el('span', { className: 'meta-label', text: isYue ? '新加入夥伴' : 'Crewmates Joined' }),
           el('div', { className: 'tag-wrap' }, crewTags)
         ]),
         el('div', { className: 'meta-box' }, [
-          el('span', { className: 'meta-label', text: 'Main Arc Antagonists' }),
+          el('span', { className: 'meta-label', text: isYue ? '篇章主要強敵' : 'Main Arc Antagonists' }),
           el('p', { className: 'meta-val', text: currentArc.mainBoss })
         ])
       ]),
       el('div', { className: 'lesson-callout' }, [
-        el('strong', { text: '💡 What We Learn About the One Piece World:' }),
+        el('strong', {
+          text: isYue
+            ? '💡 海賊王世界觀重點解密：'
+            : '💡 What We Learn About the One Piece World:'
+        }),
         el('p', { text: currentArc.worldLesson })
       ]),
       el('button', {
         type: 'button',
         className: 'action-btn gold full-width',
-        text: '🗺️ View ' + arcMap.badge + ' in Viewport',
+        text: isYue
+          ? '🗺️ 喺視窗打開「' + arcMap.badge + '」海圖'
+          : '🗺️ View ' + arcMap.badge + ' in Viewport',
         onClick: () => {
           openMangaMapInViewport(arcMap.id);
         }
@@ -1245,7 +1405,10 @@
   // TAB 4: 3D WATER 7 SHIPWRIGHT DOCK (THOUSAND SUNNY & GOING MERRY CUTAWAY)
   // =========================================================================
   function renderShipsInspector(container) {
-    const allowedShips = (DATA.ships || []).filter((s) => isEraAllowed(s.era));
+    const isYue = state.lang === 'yue';
+    const allowedShips = (DATA.ships || [])
+      .filter((s) => isEraAllowed(s.era))
+      .map((s) => (HELPERS.getShipForLang ? HELPERS.getShipForLang(s, state.lang) : s));
     const activeShip =
       allowedShips.find((s) => s.id === state.selectedShipId) || allowedShips[0];
     if (!activeShip) return;
@@ -1254,7 +1417,10 @@
 
     const shipSelectorRow = el(
       'div',
-      { className: 'chip-row', attrs: { role: 'group', 'aria-label': 'Select Straw Hat Ship' } },
+      {
+        className: 'chip-row',
+        attrs: { role: 'group', 'aria-label': isYue ? '選擇草帽海賊船' : 'Select Straw Hat Ship' }
+      },
       allowedShips.map((s) =>
         el('button', {
           type: 'button',
@@ -1281,7 +1447,9 @@
       el('button', {
         type: 'button',
         className: 'action-btn ' + (xrayOn ? 'primary' : 'secondary'),
-        text: xrayOn ? '🩻 Hull X-Ray Cutaway: ON' : '🩻 Toggle 3D Hull X-Ray Cutaway',
+        text: isYue
+          ? (xrayOn ? '🩻 船體透視剖面：已開啟' : '🩻 切換立體船體透視剖面')
+          : (xrayOn ? '🩻 Hull X-Ray Cutaway: ON' : '🩻 Toggle 3D Hull X-Ray Cutaway'),
         onClick: () => {
           engine3D.setMode('ship-dock');
           engine3D.toggleShipXray();
@@ -1293,8 +1461,8 @@
         type: 'button',
         className: 'action-btn gold',
         text: isSunny
-          ? '🚀 Fire Coup de Burst! (3 Cola Barrels)'
-          : '🕊️ Activate Jaya Flying Model Leap!',
+          ? (isYue ? '🚀 發射風來噴射！（消耗三桶可樂）' : '🚀 Fire Coup de Burst! (3 Cola Barrels)')
+          : (isYue ? '🕊️ 啟動加雅島飛天模式跳躍！' : '🕊️ Activate Jaya Flying Model Leap!'),
         onClick: () => {
           engine3D.setMode('ship-dock');
           engine3D.triggerCoupDeBurst();
@@ -1311,7 +1479,7 @@
         el('button', {
           type: 'button',
           className: 'action-btn primary',
-          text: '🦁 Fire Gaon Cannon! (5 Cola Barrels)',
+          text: isYue ? '🦁 發射獅吼炮！（消耗五桶可樂）' : '🦁 Fire Gaon Cannon! (5 Cola Barrels)',
           onClick: () => {
             engine3D.setMode('ship-dock');
             engine3D.triggerGaonCannon();
@@ -1407,8 +1575,12 @@
       el('h3', {
         className: 'section-subhead',
         text: isSunny
-          ? '⚙️ Soldier Dock System Turntable (Channels 0–5)'
-          : '🐑 Going Merry Signature Shipwright Features'
+          ? (isYue
+              ? '⚙️ 士兵船塢系統旋轉艙（零號至五號頻道）'
+              : '⚙️ Soldier Dock System Turntable (Channels 0–5)')
+          : (isYue
+              ? '🐑 黃金梅利號經典船匠構造'
+              : '🐑 Going Merry Signature Shipwright Features')
       }),
       channelGrid,
       activeChannel
@@ -1419,13 +1591,15 @@
         : null,
       el('h3', {
         className: 'section-subhead',
-        text: '🏠 Interior Decks, Galley, Aquarium Bar & Rooms'
+        text: isYue
+          ? '🏠 船艙內部甲板、廚房、水族館吧台與房間'
+          : '🏠 Interior Decks, Galley, Aquarium Bar & Rooms'
       }),
       roomPills,
       activeRoom
         ? el('div', { className: 'lesson-callout' }, [
             el('strong', {
-              text: activeRoom.icon + ' ' + activeRoom.name + ' (' + activeRoom.deck + ')'
+              text: activeRoom.icon + ' ' + activeRoom.name + '（' + activeRoom.deck + '）'
             }),
             el('p', { text: activeRoom.detail })
           ])
@@ -1434,12 +1608,12 @@
         el('div', { className: 'card-kicker-row' }, [
           el('strong', {
             className: 'section-subhead',
-            text: '📐 Official Architectural Blueprint: ' + blueprintMap.title
+            text: (isYue ? '📐 官方船體建築藍圖：' : '📐 Official Architectural Blueprint: ') + blueprintMap.title
           }),
           el('button', {
             type: 'button',
             className: 'action-btn gold compact',
-            text: '🔍 Open Blueprint in Main Viewport',
+            text: isYue ? '🔍 喺主視窗打開藍圖' : '🔍 Open Blueprint in Main Viewport',
             onClick: () => {
               state.activeMapId = blueprintMap.id;
               switchTab('maps');
@@ -1469,8 +1643,13 @@
     const query = state.characterSearch.trim().toLowerCase();
     const list = DATA.characters
       .filter((raw) => isEraAllowed(raw.era))
-      .map((raw) => HELPERS.getCharacterForEra(raw, state.eraFilter))
-      .filter((ch) => {
+      .map((raw) => ({
+        raw,
+        ch: HELPERS.getCharacterForEra(raw, state.eraFilter, state.lang)
+      }))
+      .filter((item) => {
+        const ch = item.ch;
+        const raw = item.raw;
         if (state.characterFactionFilter !== 'All' && ch.faction !== state.characterFactionFilter) {
           return false;
         }
@@ -1484,12 +1663,21 @@
             ' ' +
             ch.faction +
             ' ' +
-            (ch.laugh || '')
+            (ch.laugh || '') +
+            ' ' +
+            raw.name +
+            ' ' +
+            raw.epithet +
+            ' ' +
+            raw.devilFruit +
+            ' ' +
+            (raw.laugh || '')
           ).toLowerCase();
           if (!hay.includes(query)) return false;
         }
         return true;
-      });
+      })
+      .map((item) => item.ch);
 
     if (state.characterSort === 'bounty') {
       list.sort((a, b) => (b.bounty || 0) - (a.bounty || 0) || b.powerScore - a.powerScore);
@@ -1500,15 +1688,17 @@
   }
 
   function renderCharactersInspector(container) {
+    const isYue = state.lang === 'yue';
+    const t = getStrings();
     const factions = [
-      { value: 'All', label: 'All Characters' },
-      { value: 'Straw Hat Pirates', label: '👒 Straw Hats' },
-      { value: 'Four Emperors (Yonko)', label: '👑 Emperors' },
-      { value: 'Worst Generation', label: '🔥 Worst Gen' },
-      { value: 'Marines & World Gov', label: '⚖️ Marines & Gov' },
-      { value: 'Seven Warlords / Legends', label: '🗡️ Warlords' },
-      { value: 'Revolutionary Army', label: '🐉 Revolutionaries' },
-      { value: 'Legends', label: '🏴‍☠️ Legends' }
+      { value: 'All', label: t.factionAll || 'All Characters' },
+      { value: 'Straw Hat Pirates', label: t.factionStrawHats || '👒 Straw Hats' },
+      { value: 'Four Emperors (Yonko)', label: t.factionEmperors || '👑 Emperors' },
+      { value: 'Worst Generation', label: t.factionWorstGen || '🔥 Worst Gen' },
+      { value: 'Marines & World Gov', label: t.factionMarines || '⚖️ Marines & Gov' },
+      { value: 'Seven Warlords / Legends', label: t.factionWarlords || '🗡️ Warlords' },
+      { value: 'Revolutionary Army', label: t.factionRev || '🐉 Revolutionaries' },
+      { value: 'Legends', label: t.factionLegends || '🏴‍☠️ Legends' }
     ];
 
     const chars = getFilteredAndSortedCharacters();
@@ -1518,7 +1708,7 @@
       getSafeCharacterById('luffy');
 
     if (activeChar.id === 'katakuri' || activeChar.id === 'big-mom') {
-      awardPoneglyph('wholeCake', "Big Mom's Treasure Room Rubbing");
+      awardPoneglyph('wholeCake', isYue ? '大媽寶物庫拓本' : "Big Mom's Treasure Room Rubbing");
     }
 
     // 1. Clean Single-Bar Search, Faction & Sort Header
@@ -1529,8 +1719,9 @@
           type: 'search',
           className: 'portal-search-input',
           value: state.characterSearch,
-          placeholder: '🔍 Search 38 characters, bounties, Devil Fruits, or laughs...',
-          attrs: { 'aria-label': 'Search characters' },
+          placeholder:
+            t.searchPlaceholder || '🔍 Search 38 characters, bounties, Devil Fruits, or laughs...',
+          attrs: { 'aria-label': isYue ? '搜尋角色' : 'Search characters' },
           onInput: (e) => {
             state.characterSearch = e.target.value;
             renderActivePanel();
@@ -1540,16 +1731,16 @@
           'select',
           {
             className: 'portal-select',
-            attrs: { 'aria-label': 'Sort characters by' },
+            attrs: { 'aria-label': isYue ? '排序方式' : 'Sort characters by' },
             onChange: (e) => {
               state.characterSort = e.target.value;
               renderActivePanel();
             }
           },
           [
-            { val: 'story', label: 'Sort: Crew & Story' },
-            { val: 'bounty', label: 'Sort: Highest Bounty' },
-            { val: 'power', label: 'Sort: Power Score' }
+            { val: 'story', label: t.sortStory || 'Sort: Crew & Story' },
+            { val: 'bounty', label: t.sortBounty || 'Sort: Highest Bounty' },
+            { val: 'power', label: t.sortPower || 'Sort: Power Score' }
           ].map((opt) =>
             el('option', {
               value: opt.val,
@@ -1560,7 +1751,9 @@
         ),
         el('span', {
           className: 'char-count-pill',
-          text: chars.length + (chars.length === 1 ? ' Character' : ' Characters')
+          text: isYue
+            ? chars.length + ' ' + (t.charCountSuffix || '位角色')
+            : chars.length + (chars.length === 1 ? ' Character' : ' Characters')
         })
       ]),
       el(
@@ -1588,12 +1781,14 @@
         el('div', { className: 'empty-roster-state' }, [
           el('p', {
             className: 'card-body-text',
-            text: 'No characters matched your search in this Era. Clear your filter to view the crew.'
+            text: isYue
+              ? '喺目前嘅防劇透進度入面搵唔到符合條件嘅角色，請重設篩選條件。'
+              : 'No characters matched your search in this Era. Clear your filter to view the crew.'
           }),
           el('button', {
             type: 'button',
             className: 'action-btn gold',
-            text: 'Reset Filters',
+            text: isYue ? '重設篩選條件' : 'Reset Filters',
             onClick: () => {
               state.characterSearch = '';
               state.characterFactionFilter = 'All';
@@ -1657,37 +1852,45 @@
       {
         key: 'strawhat',
         era: 'east-blue',
-        btnText: '👒 Straw Hats',
+        btnText: isYue ? '👒 草帽一夥' : '👒 Straw Hats',
         src: '/assets/characters/strawhat_crew_banner.jpg',
-        caption: 'Straw Hat Pirates Crew & Wanted Posters'
+        caption: isYue ? '草帽海賊團全員與懸賞令合集' : 'Straw Hat Pirates Crew & Wanted Posters'
       },
       {
         key: 'warlords',
         era: 'pre-timeskip',
-        btnText: '🔥 Warlords & Marines',
+        btnText: isYue ? '🔥 七武海與海軍' : '🔥 Warlords & Marines',
         src: '/assets/characters/warlords_marines_grid.jpg',
-        caption: 'Ace, Sabo, Mihawk, Garp, Akainu, Blackbeard & Legends'
+        caption: isYue
+          ? '艾斯、薩波、鷹眼、卡普、赤犬、黑鬍子與傳說強者'
+          : 'Ace, Sabo, Mihawk, Garp, Akainu, Blackbeard & Legends'
       },
       {
         key: 'favorites',
         era: 'wano',
-        btnText: '⭐ Fan Favorites',
+        btnText: isYue ? '⭐ 超人氣角色' : '⭐ Fan Favorites',
         src: '/assets/characters/fan_favorites_grid.jpg',
-        caption: 'Buggy, Crocodile, Doflamingo, Boa Hancock, Yamato, Oden, Kizaru & Aokiji'
+        caption: isYue
+          ? '巴基、克洛克達爾、多佛朗明哥、女帝、大和、御田、黃猿與青雉'
+          : 'Buggy, Crocodile, Doflamingo, Boa Hancock, Yamato, Oden, Kizaru & Aokiji'
       },
       {
         key: 'yonko',
         era: 'wano',
-        btnText: '⚡ Emperors & Gear 5',
+        btnText: isYue ? '⚡ 四皇與五檔' : '⚡ Emperors & Gear 5',
         src: '/assets/characters/yonko_gear5_banner.jpg',
-        caption: 'Gear 5 Luffy vs. Kaido + Shanks, Whitebeard, Roger, Law & Kid'
+        caption: isYue
+          ? '五檔路飛決戰凱多、紅髮、白鬍子、羅傑、羅與基德'
+          : 'Gear 5 Luffy vs. Kaido + Shanks, Whitebeard, Roger, Law & Kid'
       },
       {
         key: 'egghead',
         era: 'egghead',
-        btnText: '🧠 Egghead & Elbaph',
+        btnText: isYue ? '🧠 蛋頭島與艾爾巴夫' : '🧠 Egghead & Elbaph',
         src: '/assets/characters/egghead_legends_grid.jpg',
-        caption: 'Dr. Vegapunk, Kuma, Jewelry Bonney, Saint Saturn, Lucci & Dorry/Brogy'
+        caption: isYue
+          ? '貝加龐克博士、大熊、波妮、土星聖、路奇與巨兵海賊團'
+          : 'Dr. Vegapunk, Kuma, Jewelry Bonney, Saint Saturn, Lucci & Dorry/Brogy'
       }
     ].filter((b) => isEraAllowed(b.era));
 
@@ -1697,7 +1900,9 @@
     const artSheetDrawer = el('details', { className: 'clean-drawer art-sheet-drawer' }, [
       el('summary', {
         className: 'clean-drawer-summary',
-        text: '🖼️ Full-Cast Manga Art Sheets (' + banners.length + ' Plates)'
+        text: isYue
+          ? '🖼️ 全角色漫畫設定插畫集（共 ' + banners.length + ' 幅）'
+          : '🖼️ Full-Cast Manga Art Sheets (' + banners.length + ' Plates)'
       }),
       el('div', { className: 'clean-drawer-body' }, [
         el(
@@ -1743,7 +1948,7 @@
         ? maxIdx
         : state.selectedBountyIndex;
     const activeMilestone = history[activeBountyIdx] || {
-      label: 'Known Bounty',
+      label: isYue ? '目前懸賞金' : 'Known Bounty',
       bounty: activeChar.bounty,
       text: activeChar.bountyText
     };
@@ -1758,8 +1963,8 @@
           type: 'button',
           className: 'chip-btn active full-width',
           text: state.luffyUseGear5Photo
-            ? '👒 Switch Photo to Classic Straw Hat'
-            : '⚡ Switch Photo to Gear 5',
+            ? t.switchClassicHat || '👒 Switch Photo to Classic Straw Hat'
+            : t.switchGear5 || '⚡ Switch Photo to Gear 5',
           onClick: () => {
             state.luffyUseGear5Photo = !state.luffyUseGear5Photo;
             soundFX.playDrumsOfLiberation();
@@ -1768,10 +1973,10 @@
         })
       : null;
 
-    const posterHeaderText = activeChar.posterHeader || 'WANTED';
+    const posterHeaderText = activeChar.posterHeader || (isYue ? '通緝令' : 'WANTED');
     const posterConditionText =
-      activeMilestone.condition || activeChar.posterCondition || 'DEAD OR ALIVE';
-    const posterFooterText = activeChar.posterFooter || '— MARINE';
+      activeMilestone.condition || activeChar.posterCondition || (isYue ? '生死不論' : 'DEAD OR ALIVE');
+    const posterFooterText = activeChar.posterFooter || (isYue ? '— 海軍本部' : '— MARINE');
 
     // Collapsible Drawer 1: Haki, Signature Moves & Bounty Timeline
     const hakiBadges =
@@ -1779,13 +1984,13 @@
         ? activeChar.haki.map((h) =>
             el('span', {
               className: 'haki-badge' + (h.advanced ? ' advanced' : ''),
-              text: (h.advanced ? '⚡ ADV: ' : '🛡️ ') + h.name
+              text: (h.advanced ? (isYue ? '⚡ 高階：' : '⚡ ADV: ') : '🛡️ ') + h.name
             })
           )
         : [
             el('span', {
               className: 'haki-badge muted',
-              text: 'Martial Arts, Tech & Tactical Specialist'
+              text: isYue ? '體術、科學兵器與戰術專家' : 'Martial Arts, Tech & Tactical Specialist'
             })
           ];
 
@@ -1799,11 +2004,11 @@
             el('span', {
               className: 'meta-label',
               text:
-                '📜 Bounty Timeline (' +
+                (isYue ? '📜 懸賞金演變歷程（' : '📜 Bounty Timeline (') +
                 (activeBountyIdx + 1) +
                 '/' +
                 history.length +
-                '): ' +
+                (isYue ? '）：' : '): ') +
                 activeMilestone.label
             }),
             el('input', {
@@ -1813,7 +2018,11 @@
               max: maxIdx,
               step: 1,
               value: activeBountyIdx,
-              attrs: { 'aria-label': 'Scrub character bounty history across story arcs' },
+              attrs: {
+                'aria-label': isYue
+                  ? '滑動查看各篇章懸賞金演變'
+                  : 'Scrub character bounty history across story arcs'
+              },
               onInput: (e) => {
                 state.selectedBountyIndex = Number(e.target.value);
                 state.charDrawerCombat = true;
@@ -1844,13 +2053,18 @@
     const combatDrawer = el('details', { className: 'clean-drawer' }, [
       el('summary', {
         className: 'clean-drawer-summary',
-        text: '⚡ Haki, Signature Techniques & Bounty History'
+        text: isYue
+          ? '⚡ 霸氣造詣、招牌必殺技與懸賞金演變'
+          : '⚡ Haki, Signature Techniques & Bounty History'
       }),
       el('div', { className: 'clean-drawer-body' }, [
         bountyEvolutionBox,
-        el('h3', { className: 'section-subhead', text: '⚡ Haki Mastery' }),
+        el('h3', { className: 'section-subhead', text: t.hakiMastery || '⚡ Haki Mastery' }),
         el('div', { className: 'tag-wrap' }, hakiBadges),
-        el('h3', { className: 'section-subhead', text: '🔥 Signature Techniques' }),
+        el('h3', {
+          className: 'section-subhead',
+          text: t.signatureMoves || '🔥 Signature Techniques'
+        }),
         el('ul', { className: 'fact-list' }, moveItems)
       ])
     ]);
@@ -1862,12 +2076,16 @@
     // Collapsible Drawer 2: 6-Axis Power Radar & 1v1 Clash Simulator
     const radarCanvas = el('canvas', {
       className: 'radar-canvas',
-      attrs: { width: '270', height: '225', 'aria-label': '6-axis character power radar chart' }
+      attrs: {
+        width: '270',
+        height: '225',
+        'aria-label': isYue ? '六維角色戰力雷達圖' : '6-axis character power radar chart'
+      }
     });
 
     const allAllowedChars = DATA.characters
       .filter((c) => isEraAllowed(c.era))
-      .map((c) => HELPERS.getCharacterForEra(c, state.eraFilter));
+      .map((c) => HELPERS.getCharacterForEra(c, state.eraFilter, state.lang));
     const rivalChar =
       allAllowedChars.find((c) => c.id === state.rivalCharacterId) ||
       allAllowedChars[Math.min(1, allAllowedChars.length - 1)] ||
@@ -1877,12 +2095,12 @@
       'select',
       {
         className: 'portal-select full-width',
-        attrs: { 'aria-label': 'Select opponent for 1v1 comparison' },
+        attrs: { 'aria-label': isYue ? '揀選一對一模擬對決對手' : 'Select opponent for 1v1 comparison' },
         onChange: (e) => {
           state.rivalCharacterId = e.target.value;
           state.charDrawerClash = true;
           soundFX.playHakiBoom();
-          awardPoneglyph('quiz', 'Grand Line Tactical Clash Analysis');
+          awardPoneglyph('quiz', isYue ? '偉大航道戰術對決分析' : 'Grand Line Tactical Clash Analysis');
           renderActivePanel();
         }
       },
@@ -1890,7 +2108,7 @@
         el('option', {
           value: c.id,
           selected: c.id === rivalChar.id,
-          text: c.name + ' (PWR ' + c.powerScore + ')'
+          text: isYue ? c.name + '（戰力 ' + c.powerScore + '）' : c.name + ' (PWR ' + c.powerScore + ')'
         })
       )
     );
@@ -1900,7 +2118,9 @@
     const clashDrawer = el('details', { className: 'clean-drawer' }, [
       el('summary', {
         className: 'clean-drawer-summary',
-        text: '⚔️ Power Radar & 1v1 Clash vs. ' + rivalChar.name
+        text: isYue
+          ? '⚔️ 六維戰力雷達及一對一模擬對決：' + rivalChar.name
+          : '⚔️ Power Radar & 1v1 Clash vs. ' + rivalChar.name
       }),
       el('div', { className: 'clean-drawer-body' }, [
         el('div', { className: 'char-radar-col' }, [radarCanvas]),
@@ -1916,7 +2136,7 @@
               text: activeChar.name + ' (' + activeChar.powerScore + ')'
             })
           ]),
-          el('span', { className: 'vs-badge', text: 'VS' }),
+          el('span', { className: 'vs-badge', text: isYue ? '對決' : 'VS' }),
           el('div', { className: 'clash-fighter-box' }, [
             el('img', {
               className: 'clash-portrait-img blue-ring',
@@ -1944,7 +2164,11 @@
         el('div', { className: 'card-kicker-row' }, [
           el('span', {
             className: 'vivre-id-pill',
-            text: 'VIVRE ' + (activeChar.vivreId || '#0001') + ' • ' + activeChar.tier
+            text:
+              (isYue ? '生命卡 ' : 'VIVRE ') +
+              (activeChar.vivreId || '#0001') +
+              ' • ' +
+              activeChar.tier
           })
         ]),
         el('div', { className: 'wanted-parchment-frame' }, [
@@ -1973,22 +2197,31 @@
         el('p', { className: 'card-body-text', text: activeChar.kidBio }),
         el('div', { className: 'vivre-meta-grid' }, [
           el('div', { className: 'vivre-meta-cell' }, [
-            el('span', { className: 'vivre-meta-label', text: '🍇 Power / Style' }),
+            el('span', { className: 'vivre-meta-label', text: t.vivrePower || '🍇 Power / Style' }),
             el('span', { className: 'vivre-meta-val', text: activeChar.devilFruit })
           ]),
           el('div', { className: 'vivre-meta-cell' }, [
-            el('span', { className: 'vivre-meta-label', text: '🌊 Origin' }),
-            el('span', { className: 'vivre-meta-val', text: activeChar.originSea || 'Grand Line' })
-          ]),
-          el('div', { className: 'vivre-meta-cell' }, [
-            el('span', { className: 'vivre-meta-label', text: '🎂 Birthday' }),
-            el('span', { className: 'vivre-meta-val', text: activeChar.birthday || 'Unknown' })
-          ]),
-          el('div', { className: 'vivre-meta-cell' }, [
-            el('span', { className: 'vivre-meta-label', text: '🍖 Favorite Food' }),
+            el('span', { className: 'vivre-meta-label', text: t.vivreOrigin || '🌊 Origin' }),
             el('span', {
               className: 'vivre-meta-val',
-              text: activeChar.favoriteFood || 'Pirate Banquet'
+              text: activeChar.originSea || (isYue ? '偉大航道' : 'Grand Line')
+            })
+          ]),
+          el('div', { className: 'vivre-meta-cell' }, [
+            el('span', { className: 'vivre-meta-label', text: t.vivreBirthday || '🎂 Birthday' }),
+            el('span', {
+              className: 'vivre-meta-val',
+              text: activeChar.birthday || (isYue ? '未知' : 'Unknown')
+            })
+          ]),
+          el('div', { className: 'vivre-meta-cell' }, [
+            el('span', {
+              className: 'vivre-meta-label',
+              text: t.vivreFood || '🍖 Favorite Food'
+            }),
+            el('span', {
+              className: 'vivre-meta-val',
+              text: activeChar.favoriteFood || (isYue ? '海賊宴會大餐' : 'Pirate Banquet')
             })
           ])
         ]),
@@ -1997,7 +2230,7 @@
               el('div', { className: 'laugh-quote-col' }, [
                 el('span', {
                   className: 'laugh-quote-text',
-                  text: '😂 "' + activeChar.laugh + '"'
+                  text: isYue ? '😂 「' + activeChar.laugh + '」' : '😂 "' + activeChar.laugh + '"'
                 }),
                 activeChar.laughNote
                   ? el('span', { className: 'laugh-note-text', text: activeChar.laughNote })
@@ -2006,7 +2239,7 @@
               el('button', {
                 type: 'button',
                 className: 'laugh-play-btn',
-                text: '🔊 Laugh',
+                text: t.laughBtn || '🔊 Laugh',
                 onClick: () => {
                   soundFX.playSignatureLaugh(
                     activeChar.laugh,
@@ -2043,7 +2276,15 @@
   }
 
   function computeClashVerdict(charA, charB) {
+    const isYue = state.lang === 'yue';
     if (charA.id === charB.id) {
+      if (isYue) {
+        return (
+          '鏡像對決！兩個' +
+          charA.name +
+          '正面交鋒，霸氣衝擊足以撕裂偉大航道上空嘅雲層，戰成平手！'
+        );
+      }
       return (
         'Mirror Match! Two ' +
         charA.name +
@@ -2056,6 +2297,25 @@
     const absDiff = Math.abs(diff);
 
     if (absDiff <= 2) {
+      if (isYue) {
+        return (
+          '🌩️ 裂天級極限死鬥！' +
+          charA.name +
+          '（戰力 ' +
+          charA.powerScore +
+          '）同' +
+          charB.name +
+          '（戰力 ' +
+          charB.powerScore +
+          '）實力旗鼓相當！呢場大戰隨時激戰幾日幾夜，最後由' +
+          winner.name +
+          '憑住極高戰鬥智商（' +
+          winner.stats.battleIQ +
+          '）同霸氣造詣（' +
+          winner.stats.haki +
+          '）險勝一線！'
+        );
+      }
       return (
         '🌩️ SKY-SPLITTING EXTREME-DIFF CLASH! ' +
         charA.name +
@@ -2075,7 +2335,24 @@
       );
     }
     if (absDiff <= 7) {
-      const topMove = (winner.signatureMoves && winner.signatureMoves[0]) || 'finishing move';
+      const topMove =
+        (winner.signatureMoves && winner.signatureMoves[0]) ||
+        (isYue ? '終極必殺技' : 'finishing move');
+      if (isYue) {
+        return (
+          '🔥 偉大航道高難度激戰！' +
+          loser.name +
+          '全力逼使' +
+          winner.name +
+          '使出「' +
+          topMove +
+          '」，不過' +
+          winner.name +
+          '憑住更勝一籌嘅' +
+          (winner.stats.haki >= loser.stats.haki ? '霸氣修為' : '速度與防禦力') +
+          '成功奪得勝利！'
+        );
+      }
       return (
         '🔥 HIGH-DIFFICULTY GRAND LINE SHOWDOWN! ' +
         loser.name +
@@ -2088,6 +2365,25 @@
         "'s superior " +
         (winner.stats.haki >= loser.stats.haki ? 'Haki mastery' : 'speed and durability') +
         ' secures the win!'
+      );
+    }
+    if (isYue) {
+      return (
+        '💥 壓倒性戰力差距！' +
+        winner.name +
+        '（' +
+        winner.tier +
+        '，戰力 ' +
+        winner.powerScore +
+        '）喺正面戰鬥規模上全面壓制' +
+        loser.name +
+        '（' +
+        loser.tier +
+        '，戰力 ' +
+        loser.powerScore +
+        '），不過憑住' +
+        loser.name +
+        '嘅機智戰術，依然有機會成功突圍撤退！'
       );
     }
     return (
@@ -2115,9 +2411,14 @@
   function getFilteredFruits() {
     const q = state.fruitSearch.trim().toLowerCase();
     return DATA.devilFruits
-      .filter((df) => isEraAllowed(df.era))
-      .map((df) => HELPERS.getDevilFruitForEra(df, state.eraFilter))
-      .filter((df) => {
+      .filter((raw) => isEraAllowed(raw.era))
+      .map((raw) => ({
+        raw,
+        df: HELPERS.getDevilFruitForEra(raw, state.eraFilter, state.lang)
+      }))
+      .filter((item) => {
+        const df = item.df;
+        const raw = item.raw;
         if (
           state.fruitCategoryFilter !== 'All' &&
           !df.category.toLowerCase().includes(state.fruitCategoryFilter.toLowerCase())
@@ -2125,43 +2426,70 @@
           return false;
         }
         if (q) {
-          const hay = (df.name + ' ' + df.englishName + ' ' + df.user + ' ' + df.category).toLowerCase();
+          const hay = (
+            df.name +
+            ' ' +
+            df.englishName +
+            ' ' +
+            df.user +
+            ' ' +
+            (df.categoryDisplay || df.category) +
+            ' ' +
+            raw.name +
+            ' ' +
+            raw.englishName +
+            ' ' +
+            raw.user +
+            ' ' +
+            raw.category
+          ).toLowerCase();
           if (!hay.includes(q)) return false;
         }
         return true;
-      });
+      })
+      .map((item) => item.df);
   }
 
   function renderDevilFruitsInspector(container) {
+    const isYue = state.lang === 'yue';
+    const t = getStrings();
     // Era-filtered Illustrated Akuma no Mi Zukan (Devil Fruit Encyclopedia) Plates
     const zukanPlates = [
       {
         key: 'paramecia',
         era: 'east-blue',
-        btnText: '📖 Zukan Plate I: Paramecia & Zoan',
+        btnText: isYue ? '📖 圖鑑第一卷：超人系與動物系' : '📖 Zukan Plate I: Paramecia & Zoan',
         src: '/assets/banners/zukan-paramecia-zoan.jpg',
-        caption: '📖 Akuma no Mi Zukan Plate I — Gomu Gomu, Ope Ope, Hito Hito, Bara Bara, Hana Hana & Dragon!'
+        caption: isYue
+          ? '📖 惡魔果實圖鑑第一卷 —— 橡膠、手術、人人、四分五裂、花花與青龍果實！'
+          : '📖 Akuma no Mi Zukan Plate I — Gomu Gomu, Ope Ope, Hito Hito, Bara Bara, Hana Hana & Dragon!'
       },
       {
         key: 'logia',
         era: 'pre-timeskip',
-        btnText: '🔥 Zukan Plate II: Logia & Legends',
+        btnText: isYue ? '🔥 圖鑑第二卷：自然系與傳說' : '🔥 Zukan Plate II: Logia & Legends',
         src: '/assets/banners/zukan-logia-legends.jpg',
-        caption: '🔥 Akuma no Mi Zukan Plate II — Mera Mera, Yami Yami, Gura Gura, Suna Suna, Mochi Mochi & Phoenix!'
+        caption: isYue
+          ? '🔥 惡魔果實圖鑑第二卷 —— 燒燒、暗暗、震震、沙沙、糯糯與不死鳥果實！'
+          : '🔥 Akuma no Mi Zukan Plate II — Mera Mera, Yami Yami, Gura Gura, Suna Suna, Mochi Mochi & Phoenix!'
       },
       {
         key: 'admirals',
         era: 'wano',
-        btnText: '⚡ Zukan Plate III: Admirals & Wano',
+        btnText: isYue ? '⚡ 圖鑑第三卷：海軍大將與和之國' : '⚡ Zukan Plate III: Admirals & Wano',
         src: '/assets/banners/zukan-admirals-wano.jpg',
-        caption: '⚡ Akuma no Mi Zukan Plate III — Yomi Yomi, Ito Ito, Pika Pika, Hie Hie, Magu Magu & Wolf Deity!'
+        caption: isYue
+          ? '⚡ 惡魔果實圖鑑第三卷 —— 黃泉、線線、閃閃、冰凍、岩漿與大口真神果實！'
+          : '⚡ Akuma no Mi Zukan Plate III — Yomi Yomi, Ito Ito, Pika Pika, Hie Hie, Magu Magu & Wolf Deity!'
       },
       {
         key: 'egghead',
         era: 'egghead',
-        btnText: '🧠 Zukan Plate IV: Egghead Arc',
+        btnText: isYue ? '🧠 圖鑑第四卷：蛋頭島篇' : '🧠 Zukan Plate IV: Egghead Arc',
         src: '/assets/banners/zukan-egghead.jpg',
-        caption: '🧠 Akuma no Mi Zukan Plate IV — Nikyu Nikyu (Paw), Nomi Nomi (Brain) & Toshi Toshi (Age)!'
+        caption: isYue
+          ? '🧠 惡魔果實圖鑑第四卷 —— 肉球、腦腦與歲歲果實！'
+          : '🧠 Akuma no Mi Zukan Plate IV — Nikyu Nikyu (Paw), Nomi Nomi (Brain) & Toshi Toshi (Age)!'
       }
     ].filter((p) => isEraAllowed(p.era));
 
@@ -2199,8 +2527,10 @@
         type: 'search',
         className: 'portal-search-input',
         value: state.fruitSearch,
-        placeholder: '🔍 Search 21 Devil Fruits or wielders (e.g. Paw, Brain, Law, Magma, Phoenix)...',
-        attrs: { 'aria-label': 'Search Devil Fruits' },
+        placeholder:
+          t.fruitSearchPlaceholder ||
+          '🔍 Search 21 Devil Fruits or wielders (e.g. Paw, Brain, Law, Magma, Phoenix)...',
+        attrs: { 'aria-label': isYue ? '搜尋惡魔果實' : 'Search Devil Fruits' },
         onInput: (e) => {
           state.fruitSearch = e.target.value;
           renderActivePanel();
@@ -2208,16 +2538,21 @@
       })
     ]);
 
-    const types = ['All', 'Paramecia', 'Zoan', 'Logia'];
+    const types = [
+      { val: 'All', label: isYue ? '全部惡魔果實' : 'All Devil Fruits' },
+      { val: 'Paramecia', label: isYue ? '超人系' : 'Paramecia Type' },
+      { val: 'Zoan', label: isYue ? '動物系' : 'Zoan Type' },
+      { val: 'Logia', label: isYue ? '自然系' : 'Logia Type' }
+    ];
     const chipRow = el('div', { className: 'chip-row' });
-    types.forEach((t) => {
+    types.forEach((tOpt) => {
       chipRow.appendChild(
         el('button', {
           type: 'button',
-          className: 'chip-btn' + (state.fruitCategoryFilter === t ? ' active' : ''),
-          text: t === 'All' ? 'All Devil Fruits' : t + ' Type',
+          className: 'chip-btn' + (state.fruitCategoryFilter === tOpt.val ? ' active' : ''),
+          text: tOpt.label,
           onClick: () => {
-            state.fruitCategoryFilter = t;
+            state.fruitCategoryFilter = tOpt.val;
             renderActivePanel();
           }
         })
@@ -2228,7 +2563,7 @@
     const activeFruit =
       fruits.find((f) => f.id === state.selectedFruitId) ||
       fruits[0] ||
-      HELPERS.getDevilFruitForEra(DATA.devilFruits[0], state.eraFilter);
+      HELPERS.getDevilFruitForEra(DATA.devilFruits[0], state.eraFilter, state.lang);
 
     const fruitGrid = el('div', { className: 'location-pill-grid' });
     fruits.forEach((df) => {
@@ -2253,7 +2588,7 @@
               src: df.image || wielder.image,
               alt: df.name
             }),
-            el('span', { text: df.englishName.split(' (')[0] })
+            el('span', { text: df.englishName.split(' (')[0].split('（')[0] })
           ]
         )
       );
@@ -2265,10 +2600,13 @@
         ? '/assets/characters/luffy-gear5.jpg'
         : wielderChar.image;
 
+    const shortFruitName = activeFruit.englishName.split(' (')[0].split('（')[0];
     const unleashBtn = el('button', {
       type: 'button',
       className: 'action-btn gold full-width',
-      text: '⚡ Unleash ' + activeFruit.englishName.split(' (')[0] + ' Power in 3D Holodeck!',
+      text: isYue
+        ? '⚡ 喺立體視窗釋放「' + shortFruitName + '」能力特效！'
+        : '⚡ Unleash ' + shortFruitName + ' Power in 3D Holodeck!',
       onClick: () => {
         engine3D.setMode('devil-fruit');
         engine3D.setDevilFruit(activeFruit);
@@ -2278,17 +2616,26 @@
         } else {
           soundFX.playHakiBoom();
         }
-        awardPoneglyph('wano', '3D Devil Fruit Awakening Study');
+        awardPoneglyph('wano', isYue ? '立體惡魔果實覺醒研究' : '3D Devil Fruit Awakening Study');
         renderActivePanel();
       }
     });
 
     const detailCard = el('article', { className: 'feature-card' }, [
       el('div', { className: 'card-kicker-row' }, [
-        el('span', { className: 'badge-pill', text: activeFruit.category }),
+        el('span', {
+          className: 'badge-pill',
+          text: activeFruit.categoryDisplay || activeFruit.category
+        }),
         el('span', {
           className: 'coord-badge',
-          text: activeFruit.awakened ? '🌟 Awakened Confirmed!' : '📖 Akuma no Mi Zukan'
+          text: activeFruit.awakened
+            ? isYue
+              ? '🌟 已確認果實覺醒！'
+              : '🌟 Awakened Confirmed!'
+            : isYue
+              ? '📖 惡魔果實圖鑑'
+              : '📖 Akuma no Mi Zukan'
         })
       ]),
       el('div', { className: 'zukan-fruit-showcase' }, [
@@ -2296,11 +2643,11 @@
           el('img', {
             className: 'zukan-fruit-art-img',
             src: activeFruit.image,
-            alt: activeFruit.name + ' canonical Devil Fruit illustration'
+            alt: activeFruit.name
           }),
           el('span', {
             className: 'zukan-fruit-art-caption',
-            text: '📖 Official Akuma no Mi Zukan Form'
+            text: isYue ? '📖 官方惡魔果實圖鑑型態' : '📖 Official Akuma no Mi Zukan Form'
           })
         ]),
         el('div', { className: 'zukan-fruit-meta-col' }, [
@@ -2314,20 +2661,28 @@
               el('h2', { className: 'card-title', text: activeFruit.name }),
               el('p', {
                 className: 'card-subtitle',
-                text: activeFruit.englishName + ' • Wielded by: ' + activeFruit.user
+                text: isYue
+                  ? activeFruit.englishName + ' • 能力者：' + activeFruit.user
+                  : activeFruit.englishName + ' • Wielded by: ' + activeFruit.user
               })
             ])
           ]),
           activeFruit.zukanShape
             ? el('div', { className: 'zukan-shape-callout' }, [
-                el('strong', { text: '🍇 Canonical Manga Morphology & Source:' }),
+                el('strong', {
+                  text: isYue
+                    ? '🍇 漫畫果實外觀與設定來源：'
+                    : '🍇 Canonical Manga Morphology & Source:'
+                }),
                 el('p', { text: activeFruit.zukanShape })
               ])
             : null,
           el('button', {
             type: 'button',
             className: 'inline-link-btn',
-            text: '🏴‍☠️ Inspect ' + wielderChar.name + ' Poster & Stats →',
+            text: isYue
+              ? '🏴‍☠️ 查看' + wielderChar.name + '懸賞令與能力值 →'
+              : '🏴‍☠️ Inspect ' + wielderChar.name + ' Poster & Stats →',
             onClick: () => {
               state.selectedCharacterId = wielderChar.id;
               state.selectedBountyIndex = null;
@@ -2339,7 +2694,9 @@
       ]),
       el('p', { className: 'card-body-text', text: activeFruit.powerSummary }),
       el('div', { className: 'lesson-callout' }, [
-        el('strong', { text: '🌊 Natural Weakness & Counter:' }),
+        el('strong', {
+          text: isYue ? '🌊 自然弱點與剋星：' : '🌊 Natural Weakness & Counter:'
+        }),
         el('p', { text: activeFruit.weakness })
       ])
     ]);
@@ -2355,22 +2712,34 @@
   // TAB 7: ONE PIECE WORLD LORE, HAKI DOJO & ERA-SAFE KID'S QUIZ
   // =========================================================================
   function renderLoreAndQuizInspector(container) {
+    const isYue = state.lang === 'yue';
     if (isEraAllowed('pre-timeskip')) {
       const hakiDojoCard = el('section', { className: 'feature-card haki-dojo-card' }, [
         el('div', { className: 'card-kicker-row' }, [
-          el('span', { className: 'badge-pill', text: '⚡ Interactive 3D Haki Dojo' }),
-          el('span', { className: 'coord-badge', text: 'Try All 3 Haki Types!' })
+          el('span', {
+            className: 'badge-pill',
+            text: isYue ? '⚡ 互動立體霸氣道場' : '⚡ Interactive 3D Haki Dojo'
+          }),
+          el('span', {
+            className: 'coord-badge',
+            text: isYue ? '體驗三大霸氣！' : 'Try All 3 Haki Types!'
+          })
         ]),
-        el('h2', { className: 'card-title', text: 'Test Haki in the Viewport!' }),
+        el('h2', {
+          className: 'card-title',
+          text: isYue ? '喺立體視窗測試霸氣威力！' : 'Test Haki in the Viewport!'
+        }),
         el('p', {
           className: 'card-body-text',
-          text: 'Click any Haki button below to unleash Observation, Armament, or Conqueror\'s Haki shockwaves across the 3D viewport!'
+          text: isYue
+            ? '撳下面任何一個霸氣掣，即可喺立體視窗釋放見聞色、武裝色或者霸王色霸氣衝擊波！'
+            : "Click any Haki button below to unleash Observation, Armament, or Conqueror's Haki shockwaves across the 3D viewport!"
         }),
         el('div', { className: 'voyage-controls' }, [
           el('button', {
             type: 'button',
             className: 'action-btn secondary',
-            text: '👁️ Observation (Radar)',
+            text: isYue ? '👁️ 見聞色（預知雷達）' : '👁️ Observation (Radar)',
             onClick: () => {
               soundFX.playLogPoseChime();
               engine3D.triggerHakiDemo('observation');
@@ -2379,7 +2748,7 @@
           el('button', {
             type: 'button',
             className: 'action-btn primary',
-            text: '🥊 Armament (Armor)',
+            text: isYue ? '🥊 武裝色（黑雷硬化）' : '🥊 Armament (Armor)',
             onClick: () => {
               soundFX.playHakiBoom();
               engine3D.triggerHakiDemo('armament');
@@ -2388,7 +2757,7 @@
           el('button', {
             type: 'button',
             className: 'action-btn gold',
-            text: "⚡ Conqueror's Lightning",
+            text: isYue ? '⚡ 霸王色（皇者閃電）' : "⚡ Conqueror's Lightning",
             onClick: () => {
               soundFX.playHakiBoom();
               engine3D.triggerHakiDemo('conqueror');
@@ -2399,8 +2768,15 @@
       container.appendChild(hakiDojoCard);
     }
 
-    const qList = DATA.quizQuestions.filter((q) => isEraAllowed(q.era));
-    const safeList = qList.length > 0 ? qList : DATA.quizQuestions.slice(0, 3);
+    const indexedQuestions = DATA.quizQuestions.map((q, origIdx) => ({ raw: q, origIdx }));
+    const filteredQuestions = indexedQuestions.filter((item) => isEraAllowed(item.raw.era));
+    const safeIndexed =
+      filteredQuestions.length > 0 ? filteredQuestions : indexedQuestions.slice(0, 3);
+    const safeList = safeIndexed.map((item) =>
+      HELPERS.getQuizForLang
+        ? HELPERS.getQuizForLang(item.raw, item.origIdx, state.lang)
+        : item.raw
+    );
     const currentQ = safeList[state.quizIndex % safeList.length];
 
     const optionButtons = currentQ.options.map((optText, idx) => {
@@ -2421,7 +2797,10 @@
             state.quizScore += 1;
             soundFX.playTreasureFanfare();
             engine3D.triggerHakiDemo('conqueror');
-            awardPoneglyph('quiz', 'Navigator Scholar Quiz Mastery');
+            awardPoneglyph(
+              'quiz',
+              isYue ? '偉大航道航海家問答滿分認證' : 'Navigator Scholar Quiz Mastery'
+            );
           } else {
             soundFX.playDenDenMushi();
           }
@@ -2435,14 +2814,18 @@
           el('strong', {
             text:
               state.selectedQuizOption === currentQ.correctIndex
-                ? '🎉 SUUUPER! Correct Answer!'
-                : '🧭 Good try, Sailor! Here is the Grand Line secret:'
+                ? isYue
+                  ? '🎉 超級正確！答得好！'
+                  : '🎉 SUUUPER! Correct Answer!'
+                : isYue
+                  ? '🧭 差少少咋！偉大航道秘密揭曉：'
+                  : '🧭 Good try, Sailor! Here is the Grand Line secret:'
           }),
           el('p', { text: currentQ.explanation }),
           el('button', {
             type: 'button',
             className: 'action-btn gold',
-            text: 'Next Question ➡',
+            text: isYue ? '下一條問題 ➡' : 'Next Question ➡',
             onClick: () => {
               state.quizIndex = (state.quizIndex + 1) % safeList.length;
               state.quizAnswered = false;
@@ -2457,14 +2840,22 @@
       el('div', { className: 'card-kicker-row' }, [
         el('span', {
           className: 'badge-pill',
-          text:
-            '🏴‍☠️ Grand Line Explorer Quiz (' +
-            ((state.quizIndex % safeList.length) + 1) +
-            ' / ' +
-            safeList.length +
-            ')'
+          text: isYue
+            ? '🏴‍☠️ 偉大航道航海家問答挑戰（第 ' +
+              ((state.quizIndex % safeList.length) + 1) +
+              ' / ' +
+              safeList.length +
+              ' 題）'
+            : '🏴‍☠️ Grand Line Explorer Quiz (' +
+              ((state.quizIndex % safeList.length) + 1) +
+              ' / ' +
+              safeList.length +
+              ')'
         }),
-        el('span', { className: 'coord-badge', text: '⭐ Score: ' + state.quizScore })
+        el('span', {
+          className: 'coord-badge',
+          text: isYue ? '⭐ 得分：' + state.quizScore : '⭐ Score: ' + state.quizScore
+        })
       ]),
       el('h3', { className: 'card-title', text: currentQ.question }),
       el('div', { className: 'quiz-options-list' }, optionButtons),
@@ -2472,7 +2863,9 @@
     ]);
     container.appendChild(quizCard);
 
-    const allowedLore = DATA.loreTopics.filter((t) => isEraAllowed(t.era));
+    const allowedLore = DATA.loreTopics
+      .filter((tItem) => isEraAllowed(tItem.era))
+      .map((tItem) => (HELPERS.getLoreForLang ? HELPERS.getLoreForLang(tItem, state.lang) : tItem));
     allowedLore.forEach((topic) => {
       const stepBlocks = topic.steps.map((st) =>
         el('div', { className: 'lore-step-block' }, [
@@ -2686,7 +3079,10 @@
           engine3D.setMode('globe');
           updateViewportSwitcherHighlight('3d-globe');
           const viewportBadge = document.getElementById('viewport-mode-badge');
-          if (viewportBadge) viewportBadge.textContent = '🌍 3D ONE PIECE PLANET GLOBE';
+          const t = getStrings();
+          if (viewportBadge) {
+            viewportBadge.textContent = t.badge3dGlobe || '🌍 3D ONE PIECE PLANET GLOBE';
+          }
         } else {
           openMangaMapInViewport(key);
           if (state.activeTab !== 'maps') {
@@ -2720,7 +3116,9 @@
           const rawFruit =
             DATA.devilFruits.find((f) => f.id === state.selectedFruitId && isEraAllowed(f.era)) ||
             DATA.devilFruits[0];
-          engine3D.setDevilFruit(HELPERS.getDevilFruitForEra(rawFruit, state.eraFilter));
+          engine3D.setDevilFruit(
+            HELPERS.getDevilFruitForEra(rawFruit, state.eraFilter, state.lang)
+          );
         } else if (state.activeTab === 'ships') {
           const safeShip = isEraAllowed('pre-timeskip') ? state.selectedShipId : 'going-merry';
           state.selectedShipId = safeShip;
@@ -2740,7 +3138,10 @@
     const btnTiltX = document.getElementById('hud-tilt-x');
 
     if (btnSpin) {
-      btnSpin.textContent = engine3D.autoRotate ? '⏸ Pause Spin' : '🔄 Auto-Spin';
+      const tInit = getStrings();
+      btnSpin.textContent = engine3D.autoRotate
+        ? tInit.pauseSpin || '⏸ Pause Spin'
+        : tInit.autoSpin || '🔄 Auto-Spin';
     }
 
     if (btnZoomIn) {
@@ -2764,7 +3165,10 @@
     if (btnTiltX) {
       btnTiltX.addEventListener('click', () => {
         const tilted = engine3D.toggleCanonicalTilt();
-        btnTiltX.textContent = tilted ? '🧭 45° X-Tilt: ON' : '🧭 Upright North';
+        const t = getStrings();
+        btnTiltX.textContent = tilted
+          ? t.tilt45 || '🧭 45° X-Tilt: ON'
+          : t.tiltFlat || '🧭 Upright North';
         btnTiltX.classList.toggle('active-hud', tilted);
         soundFX.playLogPoseChime();
       });
@@ -2778,7 +3182,10 @@
     if (btnSpin) {
       btnSpin.addEventListener('click', () => {
         engine3D.autoRotate = !engine3D.autoRotate;
-        btnSpin.textContent = engine3D.autoRotate ? '⏸ Pause Spin' : '🔄 Auto-Spin';
+        const t = getStrings();
+        btnSpin.textContent = engine3D.autoRotate
+          ? t.pauseSpin || '⏸ Pause Spin'
+          : t.autoSpin || '🔄 Auto-Spin';
       });
     }
 

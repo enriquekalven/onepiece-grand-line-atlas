@@ -269,7 +269,7 @@ test('Static Zero-Dependency Server enforces security headers, ETag 304 caching,
   }
 });
 
-test('Zero unsafe DOM sinks or blocking dialogs in all public/js modules (including ships.js)', () => {
+test('Zero unsafe DOM sinks or blocking dialogs in all public/js modules (including ships.js & i18n-yue.js)', () => {
   const jsFiles = [
     'public/js/i18n.js',
     'public/js/analytics.js',
@@ -277,6 +277,7 @@ test('Zero unsafe DOM sinks or blocking dialogs in all public/js modules (includ
     'public/js/data/characters.js',
     'public/js/data/fruits-and-lore.js',
     'public/js/data/ships.js',
+    'public/js/data/i18n-yue.js',
     'public/js/data/index.js',
     'public/js/sound.js',
     'public/js/engine/islands3d.js',
@@ -366,6 +367,7 @@ test('11-Language i18n (with V3 Shipwright & Egghead labels), Signature Laugh Au
   assert.ok(indexHtml.includes('id="spoiler-opt-egghead"'), 'Expected #spoiler-opt-egghead in index.html');
   assert.ok(indexHtml.includes('data-tab-btn="ships"'), 'Expected ships tab button in index.html');
   assert.ok(indexHtml.includes('/js/data/ships.js'), 'Expected ships.js script tag in index.html');
+  assert.ok(indexHtml.includes('/js/data/i18n-yue.js'), 'Expected i18n-yue.js script tag in index.html');
   assert.ok(indexHtml.includes('id="theme-toggle-btn"'), 'Expected #theme-toggle-btn in index.html');
 
   const appJs = fs.readFileSync(path.join(PUBLIC_DIR, 'js', 'app.js'), 'utf8');
@@ -390,4 +392,222 @@ test('11-Language i18n (with V3 Shipwright & Egghead labels), Signature Laugh Au
     'Expected .char-card-img to anchor object-position: center top'
   );
 });
+
+test('Cantonese (yue) full dataset localization, Spoiler Shield parity, voice selection, and zero-English speech narration', async () => {
+  const i18n = require('../public/js/i18n.js');
+  const { OnePieceSoundFX } = require('../public/js/sound.js');
+  const sfx = new OnePieceSoundFX(true);
+
+  const hasCjk = (str) => /[\u4e00-\u9fff]/.test(str);
+  const assertZeroEnglishNarration = (contextLabel, rawCardData) => {
+    const built = i18n.buildCardNarrationText('yue', rawCardData);
+    const spoken = sfx.prepareSpeechText(built, 'yue');
+    assert.ok(hasCjk(spoken), `Expected Cantonese CJK characters in spoken narration for ${contextLabel}: ${spoken}`);
+    const englishWords = spoken.match(/[A-Za-z]{2,}/g);
+    assert.equal(
+      englishWords,
+      null,
+      `Expected ZERO multi-letter English words in Cantonese spoken narration for ${contextLabel}, found ${JSON.stringify(englishWords)} in: "${spoken}"`
+    );
+  };
+
+  // 1. Verify Berry currency & Cantonese speech normalization
+  const formattedBerrySpeech = sfx.prepareSpeechText(
+    '蒙奇・D・路飛。懸賞金：฿ 3,000,000,000。初登場懸賞：฿ 30,000,000。VIVRE #0001。',
+    'yue'
+  );
+  assert.ok(formattedBerrySpeech.includes('30億貝里'), `Expected 30億貝里 in: ${formattedBerrySpeech}`);
+  assert.ok(formattedBerrySpeech.includes('3000萬貝里'), `Expected 3000萬貝里 in: ${formattedBerrySpeech}`);
+  assert.ok(formattedBerrySpeech.includes('蒙奇・D・路飛'), 'Expected middle initial D preserved for Luffy');
+  assert.equal(/[A-Za-z]{2,}/.test(formattedBerrySpeech), false);
+
+  // 2. Verify all 38 characters across all 4 Spoiler Shield tiers in Cantonese
+  const eras = ['east-blue', 'pre-timeskip', 'wano', 'egghead'];
+  for (const era of eras) {
+    for (const rawChar of ONE_PIECE_DATA.characters) {
+      if (!OP_HELPERS.isEraAllowed(rawChar.era, era)) continue;
+      const ch = OP_HELPERS.getCharacterForEra(rawChar, era, 'yue');
+      assert.ok(hasCjk(ch.name), `Character ${ch.id} (${era}) name not localized: ${ch.name}`);
+      assert.ok(hasCjk(ch.kidBio), `Character ${ch.id} (${era}) kidBio not localized`);
+      assert.ok(hasCjk(ch.laugh), `Character ${ch.id} (${era}) laugh not localized: ${ch.laugh}`);
+      assert.equal(
+        /[A-Za-z]{2,}/.test(sfx.prepareSpeechText(ch.laugh, 'yue')),
+        false,
+        `Character ${ch.id} laugh leaked English: ${ch.laugh}`
+      );
+      assertZeroEnglishNarration(`Character ${ch.id} (${era})`, {
+        badge: '生命卡 ' + ch.vivreId + ' • ' + ch.tier,
+        title: ch.name,
+        subtitle: ch.epithet,
+        summary: ch.kidBio,
+        bullets: [
+          '฿ ' + ch.bountyText,
+          ch.devilFruit,
+          ch.originSea,
+          ch.favoriteFood,
+          ...(ch.signatureMoves || [])
+        ]
+      });
+    }
+  }
+
+  // Cantonese Spoiler Shield parity checks
+  const rawLuffy = ONE_PIECE_DATA.characters.find((c) => c.id === 'luffy');
+  const ebLuffyYue = JSON.stringify(OP_HELPERS.getCharacterForEra(rawLuffy, 'east-blue', 'yue'));
+  const preLuffyYue = JSON.stringify(OP_HELPERS.getCharacterForEra(rawLuffy, 'pre-timeskip', 'yue'));
+  const wanoLuffyYue = JSON.stringify(OP_HELPERS.getCharacterForEra(rawLuffy, 'wano', 'yue'));
+  assert.ok(!ebLuffyYue.includes('尼卡') && !ebLuffyYue.includes('五檔'), 'East Blue Cantonese Luffy leaked Nika/Gear 5!');
+  assert.ok(!preLuffyYue.includes('尼卡') && !preLuffyYue.includes('五檔'), 'Pre-TS Cantonese Luffy leaked Nika/Gear 5!');
+  assert.ok(wanoLuffyYue.includes('尼卡') && wanoLuffyYue.includes('五檔'), 'Wano Cantonese Luffy missing Nika/Gear 5!');
+
+  const rawSanji = ONE_PIECE_DATA.characters.find((c) => c.id === 'sanji');
+  assert.equal(OP_HELPERS.getCharacterForEra(rawSanji, 'east-blue', 'yue').name, '山治');
+  assert.equal(OP_HELPERS.getCharacterForEra(rawSanji, 'wano', 'yue').name, '文斯莫克・山治');
+
+  // 3. Verify all 20 World Locations, 6 Canonical Maps, 14 Timeline Arcs, 2 Ships, 21 Devil Fruits, 7 Lore Topics, 12 Quiz Questions
+  for (const rawLoc of ONE_PIECE_DATA.worldLocations) {
+    const loc = OP_HELPERS.getLocationForLang(rawLoc, 'yue');
+    assertZeroEnglishNarration(`Location ${loc.id}`, {
+      badge: loc.categoryDisplay || loc.category,
+      title: loc.name,
+      subtitle: loc.subtitle,
+      summary: loc.kidSummary,
+      bullets: loc.funFacts
+    });
+  }
+
+  for (const rawMap of ONE_PIECE_DATA.canonicalMaps) {
+    const mp = OP_HELPERS.getMapForLang(rawMap, 'yue');
+    assertZeroEnglishNarration(`Map ${mp.id}`, {
+      title: mp.title,
+      subtitle: mp.subtitle,
+      summary: mp.kidNote,
+      bullets: mp.hotspots.map((hs) => hs.label + '：' + hs.blurb)
+    });
+  }
+
+  for (const rawArc of ONE_PIECE_DATA.timelineArcs) {
+    const arc = OP_HELPERS.getArcForLang(rawArc, 'yue');
+    assertZeroEnglishNarration(`Arc ${arc.id}`, {
+      badge: arc.saga + ' • ' + arc.episodes,
+      title: arc.arcTitle,
+      summary: arc.summary,
+      bullets: [arc.crewMilestone, arc.keyMoment]
+    });
+  }
+
+  for (const rawShip of ONE_PIECE_DATA.ships) {
+    const ship = OP_HELPERS.getShipForLang(rawShip, 'yue');
+    assertZeroEnglishNarration(`Ship ${ship.id}`, {
+      badge: ship.type,
+      title: ship.name,
+      subtitle: ship.epithet,
+      summary: ship.kidSummary,
+      bullets: [
+        ...(ship.channels || []).map((c) => c.name + '：' + c.summary),
+        ...(ship.rooms || []).map((r) => r.name + '：' + r.detail)
+      ]
+    });
+  }
+
+  for (const era of ['east-blue', 'egghead']) {
+    for (const rawFruit of ONE_PIECE_DATA.devilFruits) {
+      if (!OP_HELPERS.isEraAllowed(rawFruit.era, era)) continue;
+      const df = OP_HELPERS.getDevilFruitForEra(rawFruit, era, 'yue');
+      assertZeroEnglishNarration(`DevilFruit ${df.id} (${era})`, {
+        badge: df.categoryDisplay,
+        title: df.name,
+        subtitle: df.englishName + ' • 能力者：' + df.user,
+        summary: df.powerSummary,
+        bullets: [df.zukanShape, df.weakness]
+      });
+    }
+  }
+
+  for (const rawLore of ONE_PIECE_DATA.loreTopics) {
+    const topic = OP_HELPERS.getLoreForLang(rawLore, 'yue');
+    assertZeroEnglishNarration(`Lore ${topic.id}`, {
+      badge: topic.badge,
+      title: topic.title,
+      summary: topic.summary,
+      bullets: topic.steps.map((s) => s.heading + '：' + s.detail)
+    });
+  }
+
+  ONE_PIECE_DATA.quizQuestions.forEach((rawQ, idx) => {
+    const q = OP_HELPERS.getQuizForLang(rawQ, idx, 'yue');
+    assertZeroEnglishNarration(`Quiz #${idx}`, {
+      badge: '偉大航道航海家問答挑戰',
+      title: q.question,
+      summary: q.explanation,
+      bullets: q.options
+    });
+  });
+
+  // 4. Verify Cantonese SpeechSynthesis voice selection & utterance execution
+  const prevWindow = globalThis.window;
+  const prevSpeechSynthesis = globalThis.speechSynthesis;
+  const prevUtterance = globalThis.SpeechSynthesisUtterance;
+  const spokenUtterances = [];
+
+  try {
+    globalThis.window = globalThis;
+    globalThis.SpeechSynthesisUtterance = function MockUtterance(text) {
+      this.text = text;
+      this.lang = '';
+      this.voice = null;
+      this.rate = 1;
+      this.pitch = 1;
+    };
+    const mockVoices = [
+      { name: 'Samantha', lang: 'en-US', voiceURI: 'com.apple.voice.compact.en-US.Samantha', localService: true },
+      { name: 'Tingting', lang: 'zh-CN', voiceURI: 'com.apple.voice.compact.zh-CN.Tingting', localService: true },
+      { name: 'Sinji', lang: 'zh-HK', voiceURI: 'com.apple.voice.compact.zh-HK.Sinji', localService: true }
+    ];
+    globalThis.speechSynthesis = {
+      speaking: false,
+      getVoices: () => mockVoices,
+      cancel: () => {},
+      speak: (utt) => {
+        spokenUtterances.push(utt);
+        if (typeof utt.onend === 'function') {
+          utt.onend();
+        }
+      }
+    };
+
+    const pickedYue = sfx.pickBestVoice('yue');
+    assert.ok(pickedYue, 'Expected pickBestVoice("yue") to pick a Cantonese voice');
+    assert.equal(pickedYue.name, 'Sinji', 'Expected macOS Cantonese voice Sinji over Mandarin Tingting or English Samantha');
+
+    const okSpeak = sfx.speakText(
+      i18n.buildCardNarrationText('yue', {
+        title: '蒙奇・D・路飛',
+        subtitle: '草帽路飛',
+        summary: '懸賞金 ฿ 3,000,000,000，夢想成為海賊王！'
+      }),
+      'yue'
+    );
+    assert.equal(okSpeak, true);
+    await new Promise((resolve) => setTimeout(resolve, 75));
+    assert.ok(spokenUtterances.length >= 1, 'Expected at least 1 spoken Cantonese utterance chunk');
+    for (const utt of spokenUtterances) {
+      assert.equal(utt.lang, 'zh-HK');
+      assert.equal(utt.voice.name, 'Sinji');
+      assert.equal(/[A-Za-z]{2,}/.test(utt.text), false);
+    }
+    const joinedSpoken = spokenUtterances.map((u) => u.text).join('');
+    assert.ok(joinedSpoken.includes('30億貝里'), `Expected 30億貝里 in joined spoken text: ${joinedSpoken}`);
+  } finally {
+    sfx.stopSpeech();
+    if (prevWindow === undefined) {
+      delete globalThis.window;
+    } else {
+      globalThis.window = prevWindow;
+    }
+    globalThis.speechSynthesis = prevSpeechSynthesis;
+    globalThis.SpeechSynthesisUtterance = prevUtterance;
+  }
+});
+
 

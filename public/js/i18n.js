@@ -644,7 +644,35 @@
       tabTimeline: '🧭 Timeline',
       tabLore: '📜 Lore & Quiz',
       spoilerPreTimeskip: '🌊 Pre-Timeskip (Ep 1–516)',
-      spoilerEgghead: '🔥 Egghead (Latest)'
+      spoilerEgghead: '🔥 Egghead (Latest)',
+      moreMenuBtn: '⚙️ More',
+      langMenuLabel: '🌐 Language & Voice',
+      cookiePrefsBtn: '🍪 Privacy & Analytics',
+      poneglyphUnlocked: '🏆 LAUGH TALE UNLOCKED! (4/4)',
+      poneglyphCountPrefix: '🟥 Poneglyphs:',
+      searchPlaceholder: '🔍 Search Luffy, Zoro, Shanks, Law...',
+      sortStory: '📖 Story Order',
+      sortBounty: '💰 Highest Bounty',
+      sortPower: '⚡ Highest Power',
+      charCountSuffix: 'characters',
+      factionAll: '🏴‍☠️ All (38)',
+      factionStrawHats: '👒 Straw Hats',
+      factionEmperors: '👑 Emperors',
+      factionWorstGen: '⚡ Worst Gen',
+      factionMarines: '⚓ Marines',
+      factionWarlords: '🗡️ Warlords / Cross Guild',
+      factionRev: '🔥 Rev. Army & Allies',
+      factionLegends: '🏆 Legends & Egghead',
+      vivrePower: '🍇 Power / Style',
+      vivreOrigin: '🌊 Origin Sea',
+      vivreBirthday: '🎂 Birthday',
+      vivreFood: '🍖 Favorite Food',
+      laughBtn: '🔊 Laugh',
+      drawerCombat: '⚔️ Combat Radar, Haki, Bounty History & 1v1 Clash',
+      drawerArtSheets: '🎨 Oda Manga Turnarounds & Blueprint Sheets',
+      switchClassicHat: '👒 Switch to Classic Straw Hat',
+      switchGear5: '☀️ Awaken Gear 5 Sun God!',
+      fruitSearchPlaceholder: '🔍 Search fruit name, user, or power (e.g. Nika, Room, Ice, Kaido)...'
     },
     es: {
       brandTitle: 'ONE PIECE ATLAS',
@@ -674,16 +702,51 @@
       spoilerEgghead: '🔥 蛋头岛与艾尔巴夫'
     },
     yue: {
-      tabCharacters: '🏴‍☠️ 角色 (38)',
-      tabWorld: '🌍 3D 世界',
+      brandTitle: '海賊王偉大航道圖鑑',
+      brandSubtitle: '38位角色懸賞令、生命卡、惡魔果實與立體世界互動星圖',
+      tabCharacters: '🏴‍☠️ 角色圖鑑 (38)',
+      tabWorld: '🌍 立體世界',
       tabMaps: '🗺️ 海圖',
-      tabShips: '⛵ 船塢',
+      tabShips: '⛵ 海賊船塢',
       tabFruits: '🍇 惡魔果實',
-      tabCrew: '⚓ 組建船隊',
+      tabCrew: '⚓ 組建海賊團',
       tabTimeline: '🧭 時間線',
-      tabLore: '📜 設定與問答',
+      tabLore: '📜 世界觀與問答',
+      spoilerLabel: '🛡️ 進度防劇透：',
+      spoilerEastBlue: '🌊 東海篇 (第1–61集)',
       spoilerPreTimeskip: '🌊 頂上戰爭前 (第1–516集)',
-      spoilerEgghead: '🔥 蛋頭島與艾爾巴夫'
+      spoilerWano: '⚔️ 和之國篇 (第1–1085集)',
+      spoilerEgghead: '🔥 蛋頭島與艾爾巴夫 (最新)',
+      moreMenuBtn: '⚙️ 更多設定',
+      langMenuLabel: '🌐 語言及廣東話聲線',
+      cookiePrefsBtn: '🍪 私隱及分析設定',
+      poneglyphUnlocked: '🏆 拉夫德爾已解鎖！(4/4)',
+      poneglyphCountPrefix: '🟥 路標歷史本文：',
+      searchPlaceholder: '🔍 搜尋路飛、卓洛、紅髮、羅（中英文皆可）...',
+      sortStory: '📖 故事登場順序',
+      sortBounty: '💰 最高懸賞金',
+      sortPower: '⚡ 最高戰力值',
+      charCountSuffix: '位角色',
+      factionAll: '🏴‍☠️ 全部角色 (38)',
+      factionStrawHats: '👒 草帽一夥',
+      factionEmperors: '👑 四皇勢力',
+      factionWorstGen: '⚡ 最惡世代',
+      factionMarines: '⚓ 海軍本部',
+      factionWarlords: '🗡️ 王下七武海／十字公會',
+      factionRev: '🔥 革命軍與盟友',
+      factionLegends: '🏆 傳說人物與蛋頭島',
+      vivrePower: '🍇 惡魔果實／戰鬥流派',
+      vivreOrigin: '🌊 出身海域',
+      vivreBirthday: '🎂 生日日期',
+      vivreFood: '🍖 最愛食物',
+      laughBtn: '🔊 招牌笑聲',
+      drawerCombat: '⚔️ 戰力雷達、霸氣、懸賞金演變及一對一模擬對決',
+      drawerArtSheets: '🎨 尾田榮一郎漫畫設定稿與設計藍圖',
+      switchClassicHat: '👒 切換回經典草帽型態',
+      switchGear5: '☀️ 覺醒五檔太陽神型態！',
+      fruitSearchPlaceholder: '🔍 搜尋果實名稱、能力者或能力（例如：橡膠、手術、冰凍、凱多）...',
+      cookieTitle: '🍪 航海私隱設定',
+      cookieText: '只有喺你同意嗰陣，我哋先會使用兒童安全、匿名嘅統計分析（完全停用廣告追蹤），了解大家最鍾意邊個海賊王島嶼同角色。'
     },
     ja: {
       tabCharacters: '🏴‍☠️ キャラ (38)',
@@ -835,16 +898,32 @@
     return UI_STRINGS[resolved] || UI_STRINGS.en;
   }
 
+  function ensureEndingPunctuation(str, periodChar) {
+    var trimmed = String(str || '').trim();
+    if (!trimmed) return '';
+    if (/[.!?。！？]$/.test(trimmed)) return trimmed;
+    return trimmed + periodChar;
+  }
+
   function buildCardNarrationText(langCode, cardData) {
-    var strings = getStrings(langCode);
-    var parts = [strings.narrationPrefix];
-    if (cardData && cardData.title) parts.push(String(cardData.title) + '.');
-    if (cardData && cardData.subtitle) parts.push(String(cardData.subtitle) + '.');
-    if (cardData && cardData.summary) parts.push(String(cardData.summary));
+    var resolved = resolveLanguage(langCode);
+    var strings = getStrings(resolved);
+    var isCjk = resolved === 'yue' || resolved === 'zh' || resolved === 'ja';
+    var period = isCjk ? '。' : '.';
+    var colon = isCjk ? '：' : ': ';
+    var joiner = isCjk ? '' : ' ';
+    var parts = [ensureEndingPunctuation(strings.narrationPrefix, period)];
+    if (cardData && cardData.title) parts.push(ensureEndingPunctuation(cardData.title, period));
+    if (cardData && cardData.subtitle) parts.push(ensureEndingPunctuation(cardData.subtitle, period));
+    if (cardData && cardData.summary) parts.push(ensureEndingPunctuation(cardData.summary, period));
     if (cardData && Array.isArray(cardData.notes) && cardData.notes.length > 0) {
-      parts.push(strings.explorerNotes.replace(/^[^\w\u00C0-\uFFFF]+/, '') + ': ' + cardData.notes.join(' '));
+      var cleanHeader = strings.explorerNotes.replace(/^[^\w\u00C0-\uFFFF]+/, '').trim();
+      var joinedNotes = cardData.notes
+        .map(function (n) { return ensureEndingPunctuation(n, period); })
+        .join(joiner);
+      parts.push(cleanHeader + colon + joinedNotes);
     }
-    return parts.join(' ');
+    return parts.join(joiner);
   }
 
   var api = {

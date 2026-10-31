@@ -10,11 +10,11 @@
   const YONKO_BERRY_CAP = 6500000000;
 
   const CREW_SLOTS = [
-    { key: 'captain', title: '👑 Ship Captain', desc: 'Leads the crew & clashes with Emperors' },
-    { key: 'first-mate', title: '⚔️ First Mate / Ace', desc: 'Right-hand combat powerhouse' },
-    { key: 'navigator', title: '🧭 Navigator / Strategist', desc: 'Reads Log Poses, weather & Poneglyphs' },
-    { key: 'cook-doctor', title: '🍖 Cook / Ship Doctor', desc: 'Keeps the crew fed, healed & battle-ready' },
-    { key: 'helmsman', title: '舵 Helmsman / Shipwright', desc: 'Steers through Knock Up Streams & repairs hull' }
+    { key: 'captain', title: '👑 Ship Captain', titleYue: '👑 船長', shortYue: '👑 船長', desc: 'Leads the crew & clashes with Emperors', descYue: '率領全團衝鋒陷陣，正面硬撼四皇！' },
+    { key: 'first-mate', title: '⚔️ First Mate / Ace', titleYue: '⚔️ 副船長／王牌戰鬥員', shortYue: '⚔️ 副船長', desc: 'Right-hand combat powerhouse', descYue: '船長最強左右手，斬開一切強敵！' },
+    { key: 'navigator', title: '🧭 Navigator / Strategist', titleYue: '🧭 航海士／軍師參謀', shortYue: '🧭 航海士', desc: 'Reads Log Poses, weather & Poneglyphs', descYue: '解讀記錄指針、異常氣候同歷史本文！' },
+    { key: 'cook-doctor', title: '🍖 Cook / Ship Doctor', titleYue: '🍖 廚師／船醫', shortYue: '🍖 船醫廚師', desc: 'Keeps the crew fed, healed & battle-ready', descYue: '負責全員美食補給同急救治療，保持巔峰狀態！' },
+    { key: 'helmsman', title: '舵 Helmsman / Shipwright', titleYue: '舵 掌舵手／船匠', shortYue: '舵 掌舵船匠', desc: 'Steers through Knock Up Streams & repairs hull', descYue: '駕馭衝天海流、維修船體同發射緊急加速！' }
   ];
 
   const EMPEROR_BENCHMARK = {
@@ -28,53 +28,60 @@
     }
   };
 
-  function classifyCrewThreat(avgPower, totalBounty, overCap) {
+  function classifyCrewThreat(avgPower, totalBounty, overCap, lang) {
+    const isYue = lang === 'yue';
     if (overCap) {
       return {
-        rank: '⚠️ OVER YONKO SALARY CAP!',
+        rank: isYue ? '⚠️ 超出四皇懸賞金上限！' : '⚠️ OVER YONKO SALARY CAP!',
         badgeClass: 'danger',
-        summary:
-          'Your crew costs more than ฿ 6.5 Billion Berries! Swap in a clever low-bounty specialist (like Chopper, Nami, or Brook) or switch to Free-Play Mode!'
+        summary: isYue
+          ? '你嘅海賊團總懸賞金超過咗六十五億貝里上限！試下換入懸賞金較低但實力超強嘅奇兵（例如索柏、娜美或者布魯克），或者切換去「自由夢幻模式」啦！'
+          : 'Your crew costs more than ฿ 6.5 Billion Berries! Swap in a clever low-bounty specialist (like Chopper, Nami, or Brook) or switch to Free-Play Mode!'
       };
     }
     if (avgPower >= 93 || totalBounty >= 6000000000) {
       return {
-        rank: '👑 PIRATE KING CALIBER CREW!',
+        rank: isYue ? '👑 海賊王級傳說船隊！' : '👑 PIRATE KING CALIBER CREW!',
         badgeClass: 'gold',
-        summary:
-          'Marine HQ Code Red! Five Elders & Fleet Admiral alerted — this crew has the Haki, brains, and firepower to reach Laugh Tale!'
+        summary: isYue
+          ? '海軍本部發出最高紅色警報！五老星同元帥全面戒備——呢支海賊團擁有足以抵達最終之島拉夫德爾嘅霸氣、智慧同壓倒性火力！'
+          : 'Marine HQ Code Red! Five Elders & Fleet Admiral alerted — this crew has the Haki, brains, and firepower to reach Laugh Tale!'
       };
     }
     if (avgPower >= 86 || totalBounty >= 3500000000) {
       return {
-        rank: '🔥 EMPEROR OF THE SEA (YONKO) FLEET',
+        rank: isYue ? '🔥 新世界四皇級大艦隊' : '🔥 EMPEROR OF THE SEA (YONKO) FLEET',
         badgeClass: 'gold',
-        summary:
-          'Your ship commands New World territory! Even Admirals need a Buster Call fleet before challenging your flag.'
+        summary: isYue
+          ? '你嘅海賊旗已經稱霸新世界海域！就算係海軍大將都要出動屠魔令艦隊先敢挑戰你哋。'
+          : 'Your ship commands New World territory! Even Admirals need a Buster Call fleet before challenging your flag.'
       };
     }
     if (avgPower >= 78 || totalBounty >= 1000000000) {
       return {
-        rank: '⚡ WORST GENERATION SUPERNOVA CREW',
+        rank: isYue ? '⚡ 最惡世代超新星海賊團' : '⚡ WORST GENERATION SUPERNOVA CREW',
         badgeClass: 'ocean',
-        summary:
-          'Fierce Grand Line contenders! Ready to conquer Paradise, Sabaody, and enter the New World.'
+        summary: isYue
+          ? '威震偉大航道嘅超新星勁旅！隨時準備突破香波地群島，正式殺入新世界！'
+          : 'Fierce Grand Line contenders! Ready to conquer Paradise, Sabaody, and enter the New World.'
       };
     }
     return {
-      rank: '⛵ RISING EAST BLUE ROOKIES',
+      rank: isYue ? '⛵ 東海熱血新星海賊團' : '⛵ RISING EAST BLUE ROOKIES',
       badgeClass: 'ocean',
-      summary:
-        'Ascrappy, high-heart rookie crew setting sail over Reverse Mountain! Great room to grow bounties.'
+      summary: isYue
+        ? '充滿熱血同鬥志嘅新星海賊團，正準備衝上顛倒山闖入偉大航道！未來懸賞金升幅無可限量！'
+        : 'A scrappy, high-heart rookie crew setting sail over Reverse Mountain! Great room to grow bounties.'
     };
   }
 
   function renderCrewBuilderTab(container, ctx) {
     const { el, formatBerry } = root.OP_DOM;
     const { isEraAllowed, getCharacterForEra } = root.OP_HELPERS;
+    const isYue = ctx && ctx.lang === 'yue';
     const allAllowedChars = root.ONE_PIECE_DATA.characters
       .filter((c) => isEraAllowed(c.era, ctx.eraFilter))
-      .map((c) => getCharacterForEra(c, ctx.eraFilter));
+      .map((c) => getCharacterForEra(c, ctx.eraFilter, ctx.lang));
 
     const byId = new Map(allAllowedChars.map((c) => [c.id, c]));
 
@@ -103,7 +110,7 @@
       el('button', {
         type: 'button',
         className: 'chip-btn' + (isCapMode ? ' active' : ''),
-        text: '🏆 Yonko Cap Challenge (฿ 6.5B Max)',
+        text: isYue ? '🏆 四皇懸賞上限挑戰（最高六十五億貝里）' : '🏆 Yonko Cap Challenge (฿ 6.5B Max)',
         onClick: () => {
           ctx.setBudgetMode('yonko-cap');
         }
@@ -111,7 +118,7 @@
       el('button', {
         type: 'button',
         className: 'chip-btn' + (!isCapMode ? ' active' : ''),
-        text: '🌟 Free-Play Dream Mode (No Cap)',
+        text: isYue ? '🌟 自由夢幻組隊模式（無上限）' : '🌟 Free-Play Dream Mode (No Cap)',
         onClick: () => {
           ctx.setBudgetMode('unlimited');
         }
@@ -119,7 +126,7 @@
       el('button', {
         type: 'button',
         className: 'chip-btn gold-chip',
-        text: '🎲 Randomize Valid Crew!',
+        text: isYue ? '🎲 隨機抽籤組建海賊團！' : '🎲 Randomize Valid Crew!',
         onClick: () => {
           const shuffled = [...allAllowedChars].sort(() => Math.random() - 0.5);
           const picked = new Set();
@@ -166,7 +173,7 @@
       selectedMembers.reduce((sum, m) => sum + (m.char.powerScore || 70), 0) /
         Math.max(1, selectedMembers.length)
     );
-    const verdict = classifyCrewThreat(avgPower, totalBounty, overCap);
+    const verdict = classifyCrewThreat(avgPower, totalBounty, overCap, ctx.lang);
 
     // Budget Meter Bar
     const meterFill = el('div', {
@@ -178,7 +185,9 @@
       el('div', { className: 'card-kicker-row' }, [
         el('span', {
           className: 'meta-label',
-          text: isCapMode ? 'YONKO CHALLENGE SALARY CAP (฿ 6,500,000,000)' : 'COMBINED CREW BOUNTY (FREE PLAY)'
+          text: isYue
+            ? (isCapMode ? '四皇挑戰懸賞金上限（฿ 6,500,000,000）' : '海賊團總懸賞金（自由模式）')
+            : (isCapMode ? 'YONKO CHALLENGE SALARY CAP (฿ 6,500,000,000)' : 'COMBINED CREW BOUNTY (FREE PLAY)')
         }),
         el('span', {
           className: 'bounty-total-pill' + (overCap ? ' over-cap' : ''),
@@ -198,7 +207,7 @@
           {
             type: 'button',
             className: 'crew-deck-avatar-card',
-            title: 'Inspect ' + char.name + ' Wanted Poster',
+            title: isYue ? ('查看' + char.name + '懸賞令') : ('Inspect ' + char.name + ' Wanted Poster'),
             onClick: () => ctx.inspectCharacter(char.id)
           },
           [
@@ -207,7 +216,10 @@
               src: char.image,
               alt: char.name
             }),
-            el('span', { className: 'crew-deck-role', text: slot.title.split(' ')[0] + ' ' + slot.key.toUpperCase() }),
+            el('span', {
+              className: 'crew-deck-role',
+              text: isYue ? slot.shortYue : (slot.title.split(' ')[0] + ' ' + slot.key.toUpperCase())
+            }),
             el('span', { className: 'crew-deck-name', text: char.name })
           ]
         )
@@ -223,12 +235,14 @@
         const specialists = allAllowedChars.filter((c) => c.crewSlot === slot.key);
         const others = allAllowedChars.filter((c) => c.crewSlot !== slot.key);
         const orderedOptions = [...specialists, ...others];
+        const slotLabel = isYue ? slot.titleYue : slot.title;
+        const slotDesc = isYue ? slot.descYue : slot.desc;
 
         const selectNode = el(
           'select',
           {
             className: 'portal-select full-width',
-            attrs: { 'aria-label': 'Select pirate for ' + slot.title },
+            attrs: { 'aria-label': slotLabel },
             onChange: (e) => {
               ctx.crewDraft[slot.key] = e.target.value;
               ctx.onCrewChanged();
@@ -237,17 +251,18 @@
           orderedOptions.map((c) => {
             const prefix = c.crewSlot === slot.key ? '⭐ ' : '⚓ ';
             const bText = c.bounty > 0 ? '฿ ' + formatBerry(c.bounty) : c.bountyText;
+            const pwrLabel = isYue ? ('戰力 ' + c.powerScore) : ('Pwr ' + c.powerScore);
             return el('option', {
               value: c.id,
               selected: c.id === activeId,
-              text: prefix + c.name + ' — ' + bText + ' (Pwr ' + c.powerScore + ')'
+              text: prefix + c.name + ' — ' + bText + ' (' + pwrLabel + ')'
             });
           })
         );
 
         return el('div', { className: 'crew-slot-card' }, [
-          el('div', { className: 'crew-slot-title', text: slot.title }),
-          el('div', { className: 'crew-slot-desc', text: slot.desc }),
+          el('div', { className: 'crew-slot-title', text: slotLabel }),
+          el('div', { className: 'crew-slot-desc', text: slotDesc }),
           selectNode
         ]);
       })
@@ -256,7 +271,7 @@
     // Crew Synergy Radar Chart + Threat Verdict
     const radarCanvas = el('canvas', {
       className: 'radar-canvas',
-      attrs: { 'aria-label': '6-axis Crew Synergy Radar vs Emperor Benchmark' }
+      attrs: { 'aria-label': isYue ? '海賊團六維戰力雷達圖' : '6-axis Crew Synergy Radar vs Emperor Benchmark' }
     });
 
     const summaryCard = el('article', { className: 'feature-card' }, [
@@ -267,31 +282,38 @@
         }),
         el('span', {
           className: 'coord-badge',
-          text: 'Crew Power Avg: ' + avgPower + ' / 100'
+          text: isYue ? ('平均戰力：' + avgPower + ' / 100') : ('Crew Power Avg: ' + avgPower + ' / 100')
         })
       ]),
-      el('h2', { className: 'card-title', text: '⚓ Dream Pirate Crew Builder' }),
+      el('h2', { className: 'card-title', text: isYue ? '⚓ 夢幻五人海賊團組建器' : '⚓ Dream Pirate Crew Builder' }),
       el('p', { className: 'card-body-text', text: verdict.summary }),
       budgetBox,
       deckVisual,
       slotsGrid,
       el('div', { className: 'char-split-row' }, [
         el('div', { className: 'char-details-col' }, [
-          el('h3', { className: 'section-subhead', text: '🧠 Crew Balance Breakdown' }),
+          el('h3', { className: 'section-subhead', text: isYue ? '🧠 團隊戰力平衡分析' : '🧠 Crew Balance Breakdown' }),
           el(
             'ul',
             { className: 'fact-list' },
-            [
-              'Total Combined Bounty: ฿ ' + formatBerry(totalBounty),
-              'Team Haki Mastery: ' + crewStats.haki + ' / 100 • Battle IQ: ' + crewStats.battleIQ + ' / 100',
-              'Tip: Click any pirate medal on your ship deck above to open their full Wanted Poster!'
-            ].map((line) => el('li', { className: 'fact-item', text: line }))
+            (isYue
+              ? [
+                  '海賊團總懸賞金：฿ ' + formatBerry(totalBounty),
+                  '團隊霸氣掌握度：' + crewStats.haki + ' 分 • 戰鬥智商：' + crewStats.battleIQ + ' 分',
+                  '小貼士：點擊上方甲板任何一位船員頭像，即可打開佢嘅完整懸賞令同生命卡！'
+                ]
+              : [
+                  'Total Combined Bounty: ฿ ' + formatBerry(totalBounty),
+                  'Team Haki Mastery: ' + crewStats.haki + ' / 100 • Battle IQ: ' + crewStats.battleIQ + ' / 100',
+                  'Tip: Click any pirate medal on your ship deck above to open their full Wanted Poster!'
+                ]
+            ).map((line) => el('li', { className: 'fact-item', text: line }))
           )
         ]),
         el('div', { className: 'char-radar-col' }, [
           el('h3', {
             className: 'section-subhead center',
-            text: '📊 Your Crew (Gold) vs Yonko Fleet (Blue)'
+            text: isYue ? '📊 你嘅海賊團（金色）對比 四皇基準（藍色）' : '📊 Your Crew (Gold) vs Yonko Fleet (Blue)'
           }),
           radarCanvas
         ])
